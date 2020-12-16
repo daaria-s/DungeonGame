@@ -1,5 +1,6 @@
 from objects import Teleport, Wall, Empty
 from entity import Player, Enemy
+import pygame
 
 
 class UnknownMapSymbol(Exception):
@@ -63,8 +64,28 @@ class Dungeon:
                     print(level[i][k])
                     raise UnknownMapSymbol
 
+    def get(self, coords, diff=(0, 0)):
+        return self.map_[coords[1] + diff[1]][coords[0] + diff[0]]
+
     def player_move(self, button):
-        pass
+
+        buttons_keys = {
+            pygame.K_LEFT: (-1, 0),
+            pygame.K_RIGHT: (1, 0),
+            pygame.K_UP: (0, -1),
+            pygame.K_DOWN: (0, 1)
+        }
+
+        if button not in buttons_keys.keys():
+            return
+
+        player = self.get(self.entities_position[0]).entity
+        target = self.get(self.entities_position[0], buttons_keys[button])
+
+        player.interaction(target)
+        self.get(self.entities_position[0]).entity = None
+        self.entities_position[0] = player.position
+        self.get(player.position).entity = player
 
     def enemies_move(self):
         pass
