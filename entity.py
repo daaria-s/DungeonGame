@@ -1,7 +1,7 @@
 class Entity:
 
-    def __init__(self):
-        pass
+    def __init__(self, position):
+        self.position = position
 
     def show(self):
         pass
@@ -13,9 +13,9 @@ class Entity:
         pass
 
 
-class Player:
+class Player(Entity):
     pass
 
 
-class Enemy:
+class Enemy(Entity):
     pass
