@@ -1,6 +1,8 @@
 from objects import Teleport, Wall, Empty
 from entity import Player, Enemy
 import pygame
+import config
+import random
 
 
 class UnknownMapSymbol(Exception):
@@ -27,7 +29,7 @@ class Cell:
 class Dungeon:
 
     def __init__(self):
-        # сделать случаную генерацию карты
+        # сделать случайную генерацию карты
         # и вынести это в отдельный метод
         level = [['W', 'W', 'W', '2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
                  ['W', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -40,7 +42,7 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        self.map_ = [[Cell() for k in range(len(level[i]))] for i in range(len(level))]
+        self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
 
         self.entities_position = []
 
@@ -88,4 +90,26 @@ class Dungeon:
         self.get(player.position).entity = player
 
     def enemies_move(self):
-        pass
+
+        options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        res = []
+
+        for i in range(1, len(self.entities_position)):
+            if not self.get(self.entities_position[i]).entity:
+                continue
+            diff = options[random.randint(0, len(options) - 1)]
+
+            enemy = self.get(self.entities_position[i]).entity
+            target = self.get(self.entities_position[i], diff)
+
+            res.append(enemy.interaction(target))
+            self.get(self.entities_position[i]).entity = None
+            self.entities_position[i] = enemy.position
+            self.get(self.entities_position[i]).entity = enemy
+
+        if not any(res):
+            config.TURN = 1
+            for i in range(1, len(self.entities_position)):
+                if self.get(self.entities_position[i]).entity:
+                    enemy = self.get(self.entities_position[i]).entity
+                    enemy.action_points = enemy.max_action_points
