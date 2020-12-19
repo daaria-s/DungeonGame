@@ -2,3 +2,6 @@ WIDTH, HEIGHT = SIZE = 600, 600
 FPS = 60
 TILE = 50
 TURN = 1
+
+# colors
+BLACK = (0, 0, 0)
