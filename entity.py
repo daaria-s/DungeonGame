@@ -1,5 +1,7 @@
 import pygame
 import config
+from config import *
+import animations
 
 
 class Entity:
@@ -16,9 +18,27 @@ class Entity:
         self.hit_points = max_hit_points
 
         self.alive = True
+        self.animation = animations.new('IDLE')
 
     def show(self):
-        pass
+        adj = (0, 0)
+        try:
+            adj = next(self.animation)
+        except StopIteration:
+            self.animation = animations.new('IDLE')
+
+        animated_position = (self.position[0] * TILE + (TILE - self.image.get_width()) // 2 - adj[0],
+                             self.position[1] * TILE + (TILE - self.image.get_height()) // 2 - adj[1])
+        return self.image, animated_position
+
+    def get_direction(self, obj):
+        movement_keys = {
+            (1, 0): 'LEFT',
+            (-1, 0): 'RIGHT',
+            (0, 1): 'UP',
+            (0, -1): 'DOWN'
+        }
+        return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
     def interaction(self, obj):
         if obj.entity:
@@ -38,6 +58,7 @@ class Entity:
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
+        self.animation = animations.new(self.get_direction(obj) + '_ATTACK')
         obj.hit_points -= 1
         if obj.hit_points == 0:
             obj.die()
@@ -47,6 +68,7 @@ class Entity:
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
+        self.animation = animations.new(self.get_direction(obj) + '_MOVE')
         self.position = obj.position
 
     def interaction_wall(self, obj):
@@ -58,11 +80,9 @@ class Entity:
     def interaction_chest(self, obj):
         pass
 
-    def animate(self):
-        pass
-
     def die(self):
         self.alive = False
+        self.animation = animations.new('DIE')
 
 
 class Player(Entity):
@@ -72,6 +92,10 @@ class Player(Entity):
 
     def interaction_teleport(self, obj):
         pass
+
+    def die(self):
+        super().die()
+        config.LOSE = True
 
 
 class Enemy(Entity):

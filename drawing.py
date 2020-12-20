@@ -18,8 +18,13 @@ class Drawing:
         coordinates = []
         for i in range(len(dungeon_.entities_position)):
             x1, y1 = dungeon_.entities_position[i]
+            x2, y2 = x1 + dungeon_.entities_direction[i][0], y1 + dungeon_.entities_direction[i][1]
+
             pygame.draw.rect(self.surf, BLACK, (x1 * TILE, y1 * TILE, TILE, TILE))
+            pygame.draw.rect(self.surf, BLACK, (x2 * TILE, y2 * TILE, TILE, TILE))
+
             coordinates.append((x1, y1))
+            coordinates.append((x2, y2))
 
         for coords in set(coordinates):
             dungeon_.get(coords).show_base(self.surf)
