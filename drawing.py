@@ -73,3 +73,9 @@ class Drawing:
         text = font.render(str(en_.action_points) + '/' + str(en_.max_action_points),
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 563))
+
+    def fps(self, clock_):
+        font = pygame.font.Font(None, 40)
+        text = font.render(str(round(clock_.get_fps())), True, DAMAGE_COLOR)
+        pygame.draw.rect(self.surf, PANEL_COLOR, (550, 13, 50, PANEL_HEIGHT - 13))
+        self.surf.blit(text, (550, 13))
