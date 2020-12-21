@@ -27,6 +27,7 @@ if __name__ == '__main__':
             if config.TURN == 2:
                 dungeon.enemies_move()
 
+            drawing.top_panel(dungeon)
             drawing.entities(dungeon)
             pygame.display.flip()
 
