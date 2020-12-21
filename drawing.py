@@ -54,3 +54,22 @@ class Drawing:
         text = font.render(str(player_.action_points) + '/' + str(player_.max_action_points),
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 13))
+
+    def bottom_panel(self, dungeon_, coords):
+        pygame.draw.rect(self.surf, PANEL_COLOR, (0, 550, WIDTH, PANEL_HEIGHT))
+        en_ = dungeon_.get((coords[0] // TILE, (coords[1] - PANEL_HEIGHT) // TILE))
+        if not en_ or not en_.entity:
+            return
+        en_ = en_.entity
+        font = pygame.font.Font(None, 40)
+        self.surf.blit(self.player_image, (10, 560))
+        self.surf.blit(self.health_image, (50, 560))
+        text = font.render(str(en_.hit_points) + '/' + str(en_.max_hit_points), True, HP_COLOR)
+        self.surf.blit(text, (90, 563))
+        self.surf.blit(self.damage_image, (170, 560))
+        text = font.render(str(en_.damage), True, DAMAGE_COLOR)
+        self.surf.blit(text, (210, 563))
+        self.surf.blit(self.action_points_image, (250, 560))
+        text = font.render(str(en_.action_points) + '/' + str(en_.max_action_points),
+                           True, ACTION_POINTS_COLOR)
+        self.surf.blit(text, (290, 563))
