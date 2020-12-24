@@ -14,6 +14,8 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
 
     drawing.dungeon(dungeon)
+    drawing.bottom_panel(dungeon, (0, 0))
+
     running = True
     while running:
         if not config.LOSE:
@@ -23,13 +25,18 @@ if __name__ == '__main__':
                 if event.type == pygame.KEYDOWN:
                     if config.TURN == 1:
                         dungeon.player_move(event.key)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        drawing.bottom_panel(dungeon, event.pos)
 
             if config.TURN == 2:
                 dungeon.enemies_move()
 
+            drawing.top_panel(dungeon)
             drawing.entities(dungeon)
-            pygame.display.flip()
+            drawing.fps(clock)
 
+            pygame.display.flip()
             clock.tick(FPS)
 
     pygame.quit()

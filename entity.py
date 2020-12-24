@@ -29,7 +29,7 @@ class Entity:
 
         animated_position = (self.position[0] * TILE + (TILE - self.image.get_width()) // 2 - adj[0],
                              self.position[1] * TILE + (TILE - self.image.get_height()) // 2 - adj[1])
-        return self.image, animated_position
+        return self.image, config.apply(animated_position)
 
     def get_direction(self, obj):
         movement_keys = {

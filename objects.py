@@ -11,7 +11,7 @@ class Object:
         self.name = name
 
     def show(self):
-        return self.image, (self.position[0] * config.TILE, self.position[1] * config.TILE)
+        return self.image, config.apply((self.position[0] * config.TILE, self.position[1] * config.TILE))
 
 
 class Wall(Object):
