@@ -3,6 +3,7 @@ from config import *
 import config
 from drawing import Drawing
 from dungeon import Dungeon
+from music import Music
 
 if __name__ == '__main__':
     pygame.init()
@@ -12,6 +13,7 @@ if __name__ == '__main__':
     drawing = Drawing(screen)
     dungeon = Dungeon()
     clock = pygame.time.Clock()
+    music = Music()
 
     drawing.dungeon(dungeon)
     drawing.bottom_panel(dungeon, (0, 0))
