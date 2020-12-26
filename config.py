@@ -12,7 +12,3 @@ HP_COLOR = (0, 255, 0)
 DAMAGE_COLOR = (255, 0, 0)
 ACTION_POINTS_COLOR = (0, 0, 255)
 PANEL_COLOR = (64, 64, 64)
-
-
-def apply(coords):
-    return coords[0], coords[1] + PANEL_HEIGHT

@@ -1,11 +1,11 @@
 import os
-import pygame
+from functions import *
 
 
 class Animator:
 
     def __init__(self, path, static=False):
-        self.animations = {i: [pygame.image.load(path + '/' + i + '/' + k).convert_alpha() for k in os.listdir(path + '/' + i)] for i in os.listdir(path)}
+        self.animations = {i: [load_image(path + '/' + i + '/' + k) for k in os.listdir(path + '/' + i)] for i in os.listdir(path)}
         self.animation = 'idle'
         self.counter = 0
         self.sub_counter = 0

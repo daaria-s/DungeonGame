@@ -1,6 +1,6 @@
 import pygame
-from config import *
 from animator import Animator
+from functions import *
 
 
 class Object:

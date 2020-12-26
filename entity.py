@@ -2,6 +2,7 @@ import pygame
 import config
 from config import *
 from animator import Animator
+from functions import *
 
 
 class Entity:
@@ -20,7 +21,7 @@ class Entity:
         self.animator = Animator('Sprites/' + name)
 
     def show(self):
-        return self.animator.next_(), config.apply((self.position[0] * TILE, self.position[1] * TILE))
+        return self.animator.next_(), apply((self.position[0] * TILE, self.position[1] * TILE))
 
     def get_direction(self, obj):
         movement_keys = {

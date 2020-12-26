@@ -1,6 +1,7 @@
 import pygame
 import config
 from config import *
+from functions import *
 
 
 class Drawing:
@@ -8,10 +9,10 @@ class Drawing:
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.player_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.health_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.damage_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.action_points_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
 
     def dungeon(self, dungeon_):
         for i in range(len(dungeon_.map_)):
@@ -26,8 +27,8 @@ class Drawing:
             x1, y1 = dungeon_.entities_position[i]
             x2, y2 = x1 + dungeon_.entities_direction[i][0], y1 + dungeon_.entities_direction[i][1]
 
-            pygame.draw.rect(self.surf, BLACK, (*config.apply((x1 * TILE, y1 * TILE)), TILE, TILE))
-            pygame.draw.rect(self.surf, BLACK, (*config.apply((x2 * TILE, y2 * TILE)), TILE, TILE))
+            pygame.draw.rect(self.surf, BLACK, (*apply((x1 * TILE, y1 * TILE)), TILE, TILE))
+            pygame.draw.rect(self.surf, BLACK, (*apply((x2 * TILE, y2 * TILE)), TILE, TILE))
 
             coordinates.append((x1, y1))
             coordinates.append((x2, y2))
