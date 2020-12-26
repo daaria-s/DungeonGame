@@ -1,5 +1,4 @@
 import pygame
-import config
 from config import *
 from functions import *
 
@@ -9,10 +8,10 @@ class Drawing:
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(load_image('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.player_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.health_image = pygame.transform.scale(load_image('Sprites/panel/health.png'), PANEL_IMAGE_SIZE)
+        self.damage_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.action_points_image = pygame.transform.scale(load_image('Sprites/panel/action_points.png'), PANEL_IMAGE_SIZE)
 
     def dungeon(self, dungeon_):
         for i in range(len(dungeon_.map_)):
