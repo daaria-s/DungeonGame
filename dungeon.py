@@ -77,7 +77,7 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if self.get(i).entity]):
+        if any([self.get(i).entity.animator.animation not in ['idle', 'die'] for i in self.entities_position[1:] if self.get(i).entity]):
             return
 
         buttons_keys = {
@@ -89,7 +89,7 @@ class Dungeon:
 
         player = self.get(self.entities_position[0]).entity
 
-        if player.animation.name != 'IDLE':
+        if player.animator.animation != 'idle':
             return
         if button not in buttons_keys.keys():
             return
@@ -107,7 +107,7 @@ class Dungeon:
 
     def enemies_move(self):
 
-        if self.get(self.entities_position[0]).entity.animation.name != 'IDLE':
+        if self.get(self.entities_position[0]).entity.animator.animation != 'idle':
             return
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
@@ -125,7 +125,7 @@ class Dungeon:
             diff = options[random.randint(0, len(options) - 1)]
             enemy = self.get(self.entities_position[i]).entity
 
-            if enemy.animation.name != 'IDLE':
+            if enemy.animator.animation != 'idle':
                 res.append(True)
                 continue
 
