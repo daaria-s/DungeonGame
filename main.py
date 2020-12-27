@@ -36,7 +36,6 @@ if __name__ == '__main__':
 
             drawing.top_panel(dungeon)
             drawing.entities(dungeon)
-            drawing.fps(clock)
 
             pygame.display.flip()
             clock.tick(FPS)

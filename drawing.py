@@ -8,10 +8,13 @@ class Drawing:
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/panel/health.png'), PANEL_IMAGE_SIZE)
+        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/panel/action_points.png'), PANEL_IMAGE_SIZE)
+        self.inventory_image = pygame.transform.scale(pygame.image.load('Sprites/panel/inventory.png'), PANEL_IMAGE_SIZE)
+        self.save_image = pygame.transform.scale(pygame.image.load('Sprites/panel/save.png'), PANEL_IMAGE_SIZE)
+        self.exit_image = pygame.transform.scale(pygame.image.load('Sprites/panel/exit.png'), PANEL_IMAGE_SIZE)
 
     def dungeon(self, dungeon_):
         for i in range(len(dungeon_.map_)):
@@ -54,6 +57,9 @@ class Drawing:
         text = font.render(str(player_.action_points) + '/' + str(player_.max_action_points),
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 13))
+        self.surf.blit(self.inventory_image, (450, 10))
+        self.surf.blit(self.save_image, (500, 10))
+        self.surf.blit(self.exit_image, (550, 10))
 
     def bottom_panel(self, dungeon_, coords):
         pygame.draw.rect(self.surf, PANEL_COLOR, (0, 550, WIDTH, PANEL_HEIGHT))
@@ -74,8 +80,3 @@ class Drawing:
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 563))
 
-    def fps(self, clock_):
-        font = pygame.font.Font(None, 40)
-        text = font.render(str(round(clock_.get_fps())), True, DAMAGE_COLOR)
-        pygame.draw.rect(self.surf, PANEL_COLOR, (550, 13, 50, PANEL_HEIGHT - 13))
-        self.surf.blit(text, (550, 13))

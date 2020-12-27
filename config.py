@@ -3,7 +3,7 @@ FPS = 60
 TILE = 50
 TURN = 1
 LOSE = False
-PANEL_IMAGE_SIZE = (30, 30)
+PANEL_IMAGE_SIZE = (32, 32)
 PANEL_HEIGHT = 50
 
 # colors
