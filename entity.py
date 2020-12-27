@@ -21,7 +21,9 @@ class Entity:
         self.animator = Animator('Sprites/' + name)
 
     def show(self):
-        return self.animator.next_(), apply((self.position[0] * TILE, self.position[1] * TILE))
+        image, shift = self.animator.next_()
+        return image, apply((self.position[0] * TILE + shift[0],
+                             self.position[1] * TILE + shift[1]))
 
     def get_direction(self, obj):
         movement_keys = {

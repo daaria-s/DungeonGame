@@ -1,5 +1,6 @@
 import os
 from functions import *
+from config import *
 
 
 class Animator:
@@ -11,18 +12,25 @@ class Animator:
         self.sub_counter = 0
         self.static = static
 
+        self.shift = (0, 0)
+
     def next_(self):
         if not self.static:
             self.sub_counter += 1
-            if self.sub_counter == 4:
+            if self.sub_counter == 2:
                 self.counter += 1
                 self.sub_counter = 0
             if self.counter >= len(self.animations[self.animation]):
-                self.animation = 'idle'
-                self.counter = 0
-        return self.animations[self.animation][self.counter]
+                self.start('idle')
+        return self.animations[self.animation][self.counter], self.shift
 
     def start(self, name):
         self.animation = name
+        if name == 'move_right':
+            self.shift = (-TILE, 0)
+        elif name == 'move_down':
+            self.shift = (0, -TILE)
+        else:
+            self.shift = (0, 0)
         self.counter = 0
         self.sub_counter = 0
