@@ -1,6 +1,7 @@
 import pygame
 import config
 from config import *
+from objects import Button, buttons, background, Background
 
 
 class Drawing:
@@ -19,6 +20,20 @@ class Drawing:
                 dungeon_.get((k, i)).show_base(self.surf)
                 dungeon_.get((k, i)).show_decor(self.surf)
                 dungeon_.get((k, i)).show_entity(self.surf)
+
+    def menu(self, surf):
+        background.draw(surf)
+        buttons.draw(surf)
+
+    def settings(self, surf):
+        # Background('settings_background.png')
+        surf1 = pygame.Surface((450, 270))
+        surf1.fill((42, 42, 42))
+        pygame.draw.line(surf1, (255, 255, 255), (0, 0), (0, 270), 3)
+        pygame.draw.line(surf1, (255, 255, 255), (0, 0), (450, 0), 3)
+        pygame.draw.line(surf1, (255, 255, 255), (449, 0), (449, 270), 3)
+        pygame.draw.line(surf1, (255, 255, 255), (0, 270), (449, 270), 5)
+        surf.blit(surf1, (75, 140))
 
     def entities(self, dungeon_):
         coordinates = []

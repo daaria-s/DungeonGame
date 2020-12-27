@@ -5,11 +5,9 @@ class Music:
     def __init__(self):
         pg.init()
 
-        pg.mixer.music.load('Sounds/menu_music.mp3')
-        pg.mixer.music.play()
         self.game_sound = pg.mixer.Sound('Sounds/tuk.mp3')
-        self.sound2 = None
-        self.sound3 = None
+        self.fail_sound = None
+        self.win_sound = None
 
     def update(self, event):
             if event.type == pg.KEYUP:
@@ -28,4 +26,5 @@ class Music:
         pg.mixer.music.play()
 
     def menu_music(self):
+        pg.mixer.music.load('Sounds/menu_music.mp3')
         pg.mixer.music.play()
