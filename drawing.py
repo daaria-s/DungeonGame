@@ -58,7 +58,7 @@ class Drawing:
     def bottom_panel(self, dungeon_, coords):
         pygame.draw.rect(self.surf, PANEL_COLOR, (0, 550, WIDTH, PANEL_HEIGHT))
         en_ = dungeon_.get((coords[0] // TILE, (coords[1] - PANEL_HEIGHT) // TILE))
-        if not en_ or not en_.entity:
+        if not en_ or not en_.entity or en_.entity.hit_points == 0:
             return
         en_ = en_.entity
         font = pygame.font.Font(None, 40)

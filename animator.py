@@ -21,7 +21,10 @@ class Animator:
                 self.counter += 1
                 self.sub_counter = 0
             if self.counter >= len(self.animations[self.animation]):
-                self.start('idle')
+                if self.animation == 'die':
+                    self.counter -= 1
+                else:
+                    self.start('idle')
         return self.animations[self.animation][self.counter], self.shift
 
     def start(self, name):
@@ -29,6 +32,10 @@ class Animator:
         if name == 'move_right':
             self.shift = (-TILE, 0)
         elif name == 'move_down':
+            self.shift = (0, -TILE)
+        elif name == 'attack_left':
+            self.shift = (-TILE, 0)
+        elif name == 'attack_up':
             self.shift = (0, -TILE)
         else:
             self.shift = (0, 0)

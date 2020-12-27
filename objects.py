@@ -1,4 +1,3 @@
-import pygame
 from animator import Animator
 from functions import *
 
@@ -11,9 +10,8 @@ class Object:
         self.animator = Animator('Sprites/' + path, True)
 
     def show(self):
-        image, shift = self.animator.next_()
-        return image, apply((self.position[0] * TILE + shift[0],
-                             self.position[1] * TILE + shift[1]))
+        return self.animator.next_()[0], apply((self.position[0] * TILE,
+                                                self.position[1] * TILE))
 
 
 class Wall(Object):

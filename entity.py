@@ -52,10 +52,14 @@ class Entity:
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
-        self.animator.start('attack_' + self.get_direction(obj))
-        obj.hit_points -= 1
         if obj.hit_points == 0:
-            obj.die()
+            self.animator.start('move_' + self.get_direction(obj))
+            self.position = obj.position
+        else:
+            self.animator.start('attack_' + self.get_direction(obj))
+            obj.hit_points -= 1
+            if obj.hit_points == 0:
+                obj.die()
 
     def interaction_empty(self, obj):
         self.action_points -= 1
