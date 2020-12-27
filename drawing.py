@@ -15,6 +15,10 @@ class Drawing:
         self.inventory_image = pygame.transform.scale(pygame.image.load('Sprites/panel/inventory.png'), PANEL_IMAGE_SIZE)
         self.save_image = pygame.transform.scale(pygame.image.load('Sprites/panel/save.png'), PANEL_IMAGE_SIZE)
         self.exit_image = pygame.transform.scale(pygame.image.load('Sprites/panel/exit.png'), PANEL_IMAGE_SIZE)
+        self.inventory_background_image = pygame.image.load('Sprites/inventory_background.png')
+        self.key_images = {
+            'key': pygame.transform.scale(pygame.image.load('Sprites/key.png'), INVENTORY_IMAGE_SIZE)
+        }
 
     def dungeon(self, dungeon_):
         for i in range(len(dungeon_.map_)):
@@ -80,3 +84,15 @@ class Drawing:
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 563))
 
+    def inventory(self, dungeon_):
+        player_ = dungeon_.get(dungeon_.entities_position[0]).entity
+        row, col = 0, 0
+        for obj in player_.inventory:
+            self.inventory_background_image.blit(self.key_images[obj],
+                                                 (INVENTORY_INDENT + 3 + col * (INVENTORY_INDENT + INVENTORY_IMAGE_SIZE[0]),
+                                                  INVENTORY_INDENT + 3 + row * (INVENTORY_INDENT + INVENTORY_IMAGE_SIZE[1])))
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+        self.surf.blit(self.inventory_background_image, (100, 100))
