@@ -5,6 +5,7 @@ import sys
 
 buttons = pygame.sprite.Group()
 background = pygame.sprite.Group()
+settings = pygame.sprite.Group()
 
 
 class Object:
@@ -90,7 +91,6 @@ class Button(pygame.sprite.Sprite):
         if self.rect[0] <= x <= self.rect[2] + self.rect[0] and self.rect[1] <= y <= self.rect[3] + self.rect[1]:
             self.image = self.image2
         else:
-
             self.image = self.image1
 
 
@@ -99,3 +99,11 @@ class Background(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, background)  # call Sprite initializer
         self.image = load_image(image_file)
         self.rect = self.image.get_rect()
+
+
+class Object(pygame.sprite.Sprite):
+    def __init__(self, x, y, image):
+        pygame.sprite.Sprite.__init__(self, settings)
+        self.image = load_image(image, -1)
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y

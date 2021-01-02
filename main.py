@@ -6,7 +6,7 @@ from dungeon import Dungeon
 from music import Music
 from menu import Menu
 import sys
-from objects import buttons
+from objects import buttons, settings
 
 
 class Game:
@@ -49,18 +49,17 @@ class Game:
             pygame.display.flip()
 
     def show_settings(self):
-        running = True
         self.menu.settings_open = True
-        self.drawing.settings(self.screen)
-
+        surf, slider1, slider2 = self.drawing.settings(self.screen)
+        running = True
         while running:
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     running = False
                     self.drawing.menu(self.screen)
+                    # settings.draw(surf)
             pygame.display.flip()
 
     def choose_game(self):
