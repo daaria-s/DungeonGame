@@ -44,6 +44,8 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
+        level = load_map(0, 2, 2)
+
         self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
 
         self.entities_position = []
@@ -77,7 +79,8 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if self.get(i).entity]):
+        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if
+                self.get(i).entity]):
             return
 
         buttons_keys = {
@@ -146,3 +149,23 @@ class Dungeon:
                 if self.get(self.entities_position[i]).entity:
                     enemy = self.get(self.entities_position[i]).entity
                     enemy.action_points = enemy.max_action_points
+
+
+def load_map(enter_x, enter_y, prev_room, next_room=None):
+    if not next_room:
+        next_room = prev_room + 1
+    map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+           ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+    map[enter_x][enter_y] = str(prev_room)
+    n = 9 if enter_x == 0 else 0
+    exit_x, exit_y = random.choice([(random.randint(1, 9), random.choice([0, 11])), (n, random.randint(1, 10))])
+    map[exit_x][exit_y] = str(next_room)
+    return map
