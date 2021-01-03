@@ -164,8 +164,18 @@ def load_map(enter_x, enter_y, prev_room, next_room=None):
            ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
            ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
            ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+
+    if enter_x in (0, 9):
+        map[abs(enter_x - 1)][enter_y] = 'P'
+    else:
+        map[enter_x][abs(enter_y - 1)] = 'P'
     map[enter_x][enter_y] = str(prev_room)
     n = 9 if enter_x == 0 else 0
-    exit_x, exit_y = random.choice([(random.randint(1, 9), random.choice([0, 11])), (n, random.randint(1, 10))])
+    exit_x, exit_y = random.choice([(random.randint(1, 8), random.choice([0, 10])), (n, random.randint(1, 10))])
     map[exit_x][exit_y] = str(next_room)
+    for i in range(random.randint(2, 4)):
+        x, y = 0, 0
+        while map[x][y] != '.':
+            x, y = random.randint(1, 8), random.randint(1, 9)
+        map[x][y] = 'E'
     return map
