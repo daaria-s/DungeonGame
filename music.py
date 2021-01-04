@@ -4,10 +4,12 @@ import pygame as pg
 class Music:
     def __init__(self):
         pg.init()
-
+        self.sounds = []
         self.game_sound = pg.mixer.Sound('Sounds/tuk.mp3')
+        self.sounds.append(self.game_sound)
         self.fail_sound = None
         self.win_sound = None
+        self.nextRoom_sound = None
 
     def update(self, event):
             if event.type == pg.KEYUP:
@@ -28,3 +30,14 @@ class Music:
     def menu_music(self):
         pg.mixer.music.load('Sounds/menu_music.mp3')
         pg.mixer.music.play()
+
+    def settings(self, music_pos, sounds_pos):
+        pg.mixer.music.set_volume((music_pos - 190) / 160)
+        for sound in self.sounds:
+            sound.set_volume((sounds_pos - 190) / 160)
+
+    def move(self):
+        self.game_sound.play()
+
+    def next_room(self):
+        self.nextRoom_sound.play()

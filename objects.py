@@ -6,6 +6,7 @@ import sys
 buttons = pygame.sprite.Group()
 background = pygame.sprite.Group()
 settings = pygame.sprite.Group()
+sliders = pygame.sprite.Group()
 
 
 class Object:
@@ -102,8 +103,28 @@ class Background(pygame.sprite.Sprite):
 
 
 class Object(pygame.sprite.Sprite):
-    def __init__(self, x, y, image):
+    def __init__(self, x, y, image, groups=None):
         pygame.sprite.Sprite.__init__(self, settings)
         self.image = load_image(image, -1)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
+
+
+class Slider(pygame.sprite.Sprite):
+    def __init__(self, x, y, image, ):
+        pygame.sprite.Sprite.__init__(self, sliders)
+        self.image = load_image(image, -1)
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = x, y
+        self.pressed = False
+
+    def update(self, x, y, event):
+        if event.type == pygame.MOUSEBUTTONUP:
+            self.pressed = False
+        elif event.type == pygame.MOUSEBUTTONDOWN and self.rect.x < x < self.rect.x + 27 and self.rect.y < y < self.rect.y + 27:
+            self.pressed = True
+        elif event.type == pygame.MOUSEMOTION and self.pressed:
+            if 190 < x < 350:
+                self.rect.x = x
+
+

@@ -34,7 +34,7 @@ class Dungeon:
         # сделать случайную генерацию карты
         # и вынести это в отдельный метод
         level = [['W', 'W', 'W', '2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-                 ['W', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', 'E', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -43,8 +43,6 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
-
-        level = load_map(0, 2, 2)
 
         self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
 
@@ -149,33 +147,3 @@ class Dungeon:
                 if self.get(self.entities_position[i]).entity:
                     enemy = self.get(self.entities_position[i]).entity
                     enemy.action_points = enemy.max_action_points
-
-
-def load_map(enter_x, enter_y, prev_room, next_room=None):
-    if not next_room:
-        next_room = prev_room + 1
-    map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-           ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
-
-    if enter_x in (0, 9):
-        map[abs(enter_x - 1)][enter_y] = 'P'
-    else:
-        map[enter_x][abs(enter_y - 1)] = 'P'
-    map[enter_x][enter_y] = str(prev_room)
-    n = 9 if enter_x == 0 else 0
-    exit_x, exit_y = random.choice([(random.randint(1, 8), random.choice([0, 10])), (n, random.randint(1, 10))])
-    map[exit_x][exit_y] = str(next_room)
-    for i in range(random.randint(2, 4)):
-        x, y = 0, 0
-        while map[x][y] != '.':
-            x, y = random.randint(1, 8), random.randint(1, 9)
-        map[x][y] = 'E'
-    return map

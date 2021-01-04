@@ -6,7 +6,7 @@ from dungeon import Dungeon
 from music import Music
 from menu import Menu
 import sys
-from objects import buttons, settings
+from objects import buttons, settings, sliders, Slider
 
 
 class Game:
@@ -19,6 +19,9 @@ class Game:
         self.dungeon = Dungeon()
         self.music = Music()
         self.menu = Menu(self.screen)
+
+        self.first_slider = Slider(345, 61, 'settings/slider.png')
+        self.second_slider = Slider(345, 151, 'settings/slider.png')
 
     def exit(self):
         sys.exit()
@@ -50,17 +53,22 @@ class Game:
 
     def show_settings(self):
         self.menu.settings_open = True
-        surf, slider1, slider2 = self.drawing.settings(self.screen)
+        clock = pygame.time.Clock()
         running = True
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.exit()
+                x_pos, y_pos = pygame.mouse.get_pos()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    running = False
-                    self.drawing.menu(self.screen)
-                    # settings.draw(surf)
+                    if pygame.mouse.get_focused() and not (90 < x_pos < 496 and 140 < y_pos < 436):
+                        self.drawing.menu(self.screen)
+                        return
+                sliders.update(x_pos - 90, y_pos - 140, event)
+                self.music.settings(self.first_slider.rect.x, self.second_slider.rect.x)
+            self.drawing.settings(self.screen)
             pygame.display.flip()
+            clock.tick(100)
 
     def choose_game(self):
         print('load')
@@ -76,11 +84,10 @@ class Game:
             if not config.LOSE:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # running = False
-                        # self.music.menu_music()
                         self.exit()
                     if event.type == pygame.KEYDOWN:
                         if config.TURN == 1:
+                            self.music.move()
                             self.dungeon.player_move(event.key)
                     if event.type == pygame.MOUSEBUTTONDOWN:
                         if event.button == 1:

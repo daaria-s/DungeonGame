@@ -1,7 +1,7 @@
 import pygame
 import config
 from config import *
-from objects import Button, buttons, background, Background, load_image, Object, settings
+from objects import buttons, background, Background, Object, settings, Slider, sliders
 
 
 class Drawing:
@@ -21,23 +21,25 @@ class Drawing:
                 dungeon_.get((k, i)).show_decor(self.surf)
                 dungeon_.get((k, i)).show_entity(self.surf)
 
+    def saved_games(self, surf):
+        background.draw(surf)
+
     def menu(self, surf):
         background.draw(surf)
         buttons.draw(surf)
 
     def settings(self, surf):
-        surf1 = pygame.Surface((406, 296))
-        surf1.fill((32, 32, 32))
+        small_surf = pygame.Surface((406, 296))
+        small_surf.fill((32, 32, 32))
         Object(0, 0, 'settings/panel_settings.png')
         Object(40, 50, 'settings/music.png')
         Object(40, 140, 'settings/sounds.png')
         Object(200, 70, 'settings/scrollbar.png')
         Object(200, 160, 'settings/scrollbar.png')
-        slider1 = Object(265, 61, 'settings/slider.png')
-        slider2 = Object(265, 151, 'settings/slider.png')
-        settings.draw(surf1)
-        surf.blit(surf1, (90, 140))
-        return surf1, slider1, slider2
+        settings.draw(small_surf)
+        sliders.draw(small_surf)
+        surf.blit(small_surf, (90, 140))
+        return small_surf
 
     def entities(self, dungeon_):
         coordinates = []
