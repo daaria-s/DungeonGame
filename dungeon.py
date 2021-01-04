@@ -9,71 +9,30 @@ class UnknownMapSymbol(Exception):
     pass
 
 
-class Cell:
-
-    def __init__(self):
-        self.base = None
-        self.decor = []
-        self.entity = None
-
-    def show_base(self, surf):
-        surf.blit(*self.base.show())
-
-    def show_decor(self, surf):
-        for i in self.decor:
-            surf.blit(*i.show())
-
-    def show_entity(self, surf):
-        if self.entity:
-            surf.blit(*self.entity.show())
-
-
 class Dungeon:
 
     def __init__(self):
-        # сделать случайную генерацию карты
-        # и вынести это в отдельный метод
-        level = [['W', 'W', 'W', '2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-                 ['W', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+        level = [['W', 'W', 'W', '.', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-                 ['W', '.', '.', '.', '.', 'E', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-                 ['W', '.', '.', '.', '.', '.', '.', '.', 'E', '.', '.', 'W'],
-                 ['W', '.', '.', '.', 'E', '.', '.', '.', '.', '.', '.', '3'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
+        self.map_ = [[Wall((k, i)) if level[i][k] == 'W' else Empty((k, i)) for k in range(len(level[i]))] for i in range(len(level))]
 
-        self.entities_position = []
-
-        for i in range(len(level)):
-            for k in range(len(level[i])):
-                if level[i][k] == 'W':
-                    self.map_[i][k].base = Wall((k, i))
-                else:
-                    self.map_[i][k].base = Empty((k, i))
-
-                if level[i][k] == 'E':
-                    self.map_[i][k].entity = Enemy((k, i))
-                    self.entities_position.append((k, i))
-                elif level[i][k] == 'P':
-                    self.map_[i][k].entity = Player((k, i))
-                    self.entities_position.append((k, i))
-                elif level[i][k].isdigit():
-                    self.map_[i][k].decor.append(Teleport((k, i), self.map_[i][k]))
-
-                if not self.map_[i][k]:
-                    print(level[i][k])
-                    raise UnknownMapSymbol
-        self.entities_direction = [(0, 0) for i in self.entities_position]
+        self.coordinates = {
+            (1, 1): Player((1, 1)),
+            (5, 2): Enemy((5, 2)),
+            (2, 3): Enemy((2, 3))
+        }
 
     def get(self, coords, diff=(0, 0)):
-        if 0 <= coords[1] + diff[1] < len(self.map_):
-            if 0 <= coords[0] + diff[0] < len(self.map_[0]):
-                return self.map_[coords[1] + diff[1]][coords[0] + diff[0]]
-        return False
+        return self.coordinates.get([coords[1] + diff[1]][coords[0] + diff[0]])
 
     def player_move(self, button):
 
