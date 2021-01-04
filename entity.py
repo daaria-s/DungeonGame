@@ -40,12 +40,8 @@ class Entity:
         }
         return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
-    def interaction(self, obj):
-        if obj.entity:
-            target = obj.entity
-        elif obj.base:
-            target = obj.base
-        if self.action_points == 0:
+    def interaction(self, target):
+        if not target or self.action_points == 0:
             return False
         if target.name == 'enemy' or target.name == 'player':
             self.interaction_entity(target)
@@ -59,9 +55,7 @@ class Entity:
             self.action_points = self.max_action_points
             config.TURN = 2
         self.animation = animations.new(self.get_direction(obj) + '_ATTACK')
-        obj.hit_points -= 1
-        if obj.hit_points == 0:
-            obj.die()
+        obj.get_hit(self.damage)
 
     def interaction_empty(self, obj):
         self.action_points -= 1
@@ -79,6 +73,11 @@ class Entity:
 
     def interaction_chest(self, obj):
         pass
+
+    def get_hit(self, damage):
+        self.hit_points -= damage
+        if self.hit_points <= 0:
+            self.die()
 
     def die(self):
         self.alive = False
