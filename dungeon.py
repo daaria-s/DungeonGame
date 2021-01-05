@@ -77,7 +77,8 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if self.get(i).entity]):
+        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in
+                self.entities_position[1:] if self.get(i).entity]):
             return
 
         buttons_keys = {
@@ -115,7 +116,8 @@ class Dungeon:
         player_pos = self.entities_position[0]
         blocked_cells = []
         for i in range(1, len(self.entities_position)):
-            if self.get(self.entities_position[i]).entity and not self.get(self.entities_position[i]).entity.alive:
+            if self.get(self.entities_position[i]).entity and not self.get(
+                    self.entities_position[i]).entity.alive:
                 self.get(self.entities_position[i]).entity = None
                 continue
             if not self.get(self.entities_position[i]).entity:
@@ -135,7 +137,8 @@ class Dungeon:
                 elif enemy_pos[0] != player_pos[0]:
                     diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
 
-            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
+            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells or (
+            enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in self.entities_position[1:]:
                 diff = options[random.randint(0, len(options) - 1)]
             blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
             enemy = self.get(self.entities_position[i]).entity
