@@ -113,7 +113,8 @@ class Dungeon:
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
-
+        player_pos = self.entities_position[0]
+        blocked_cells = []
         for i in range(1, len(self.entities_position)):
             if self.get(self.entities_position[i]).entity and not self.get(self.entities_position[i]).entity.alive:
                 self.get(self.entities_position[i]).entity = None
@@ -123,7 +124,21 @@ class Dungeon:
             if self.get(self.entities_position[i]).entity.name != 'enemy':
                 continue
 
-            diff = options[random.randint(0, len(options) - 1)]
+            enemy_pos = self.entities_position[i]
+            if random.randint(0, 1):
+                if enemy_pos[0] != player_pos[0]:
+                    diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
+                elif enemy_pos[1] != player_pos[1]:
+                    diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
+            else:
+                if enemy_pos[1] != player_pos[1]:
+                    diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
+                elif enemy_pos[0] != player_pos[0]:
+                    diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
+
+            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
+                diff = options[random.randint(0, len(options) - 1)]
+            blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
             enemy = self.get(self.entities_position[i]).entity
 
             if enemy.animation.name != 'IDLE':
