@@ -131,9 +131,9 @@ class Dungeon:
                     diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
             else:
                 if enemy_pos[1] != player_pos[1]:
-                    diff = (-1, 0) if enemy_pos[1] > player_pos[1] else (1, 0)
+                    diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
                 elif enemy_pos[0] != player_pos[0]:
-                    diff = (0, -1) if enemy_pos[0] > player_pos[0] else (0, 1)
+                    diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
 
             while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
                 diff = options[random.randint(0, len(options) - 1)]
