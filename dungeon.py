@@ -54,7 +54,9 @@ class Dungeon:
         if button not in buttons_keys.keys():
             return
 
+        self.coordinates[self.player.position] = None
         self.player.interaction(self.get(self.player.position, buttons_keys[button]))
+        self.coordinates[self.player.position] = self.player
 
     def enemies_move(self):
 
@@ -72,7 +74,9 @@ class Dungeon:
                 continue
 
             target = self.get(enemy.position, diff)
+            self.coordinates[enemy.position] = None
             res.append(enemy.interaction(target))
+            self.coordinates[enemy.position] = enemy
 
         if not any(res):
             config.TURN = 1
