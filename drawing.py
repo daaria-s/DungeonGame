@@ -1,6 +1,7 @@
 import pygame
 import config
 from config import *
+from functions import *
 
 
 class Drawing:
@@ -8,10 +9,10 @@ class Drawing:
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/panel/health.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/panel/action_points.png'), PANEL_IMAGE_SIZE)
+        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
         self.inventory_image = pygame.transform.scale(pygame.image.load('Sprites/panel/inventory.png'), PANEL_IMAGE_SIZE)
         self.save_image = pygame.transform.scale(pygame.image.load('Sprites/panel/save.png'), PANEL_IMAGE_SIZE)
         self.exit_image = pygame.transform.scale(pygame.image.load('Sprites/panel/exit.png'), PANEL_IMAGE_SIZE)

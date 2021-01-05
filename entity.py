@@ -1,13 +1,13 @@
 import pygame
 import config
 from config import *
-import animations
+from animator import Animator
+from functions import *
 
 
 class Entity:
 
     def __init__(self, position, name, max_action_points, damage, max_hit_points):
-        self.image = pygame.image.load('Sprites/' + name + '.png')
         self.position = position
         self.name = name
 
@@ -18,30 +18,28 @@ class Entity:
         self.hit_points = max_hit_points
 
         self.alive = True
-        self.animation = animations.new('IDLE')
+        self.animator = Animator('Sprites/' + name)
 
     def show(self):
-        adj = (0, 0)
-        try:
-            adj = next(self.animation)
-        except StopIteration:
-            self.animation = animations.new('IDLE')
-
-        animated_position = (self.position[0] * TILE + (TILE - self.image.get_width()) // 2 - adj[0],
-                             self.position[1] * TILE + (TILE - self.image.get_height()) // 2 - adj[1])
-        return self.image, config.apply(animated_position)
+        image, shift = self.animator.next_()
+        return image, apply((self.position[0] * TILE + shift[0],
+                             self.position[1] * TILE + shift[1]))
 
     def get_direction(self, obj):
         movement_keys = {
-            (1, 0): 'LEFT',
-            (-1, 0): 'RIGHT',
-            (0, 1): 'UP',
-            (0, -1): 'DOWN'
+            (1, 0): 'left',
+            (-1, 0): 'right',
+            (0, 1): 'up',
+            (0, -1): 'down'
         }
         return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
-    def interaction(self, target):
-        if not target or self.action_points == 0:
+    def interaction(self, obj):
+        if obj.entity:
+            target = obj.entity
+        elif obj.base:
+            target = obj.base
+        if self.action_points == 0:
             return False
         if target.name == 'enemy' or target.name == 'player':
             self.interaction_entity(target)
@@ -54,15 +52,21 @@ class Entity:
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
-        self.animation = animations.new(self.get_direction(obj) + '_ATTACK')
-        obj.get_hit(self.damage)
+        if obj.hit_points == 0:
+            self.animator.start('move_' + self.get_direction(obj))
+            self.position = obj.position
+        else:
+            self.animator.start('attack_' + self.get_direction(obj))
+            obj.hit_points -= 1
+            if obj.hit_points == 0:
+                obj.die()
 
     def interaction_empty(self, obj):
         self.action_points -= 1
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
-        self.animation = animations.new(self.get_direction(obj) + '_MOVE')
+        self.animator.start('move_' + self.get_direction(obj))
         self.position = obj.position
 
     def interaction_wall(self, obj):
@@ -74,14 +78,9 @@ class Entity:
     def interaction_chest(self, obj):
         pass
 
-    def get_hit(self, damage):
-        self.hit_points -= damage
-        if self.hit_points <= 0:
-            self.die()
-
     def die(self):
         self.alive = False
-        self.animation = animations.new('DIE')
+        self.animator.start('die')
 
 
 class Player(Entity):
