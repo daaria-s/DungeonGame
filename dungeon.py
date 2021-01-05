@@ -34,7 +34,7 @@ class Dungeon:
         # сделать случайную генерацию карты
         # и вынести это в отдельный метод
         level = [['W', 'W', 'W', '2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-                 ['W', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', 'E', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -77,7 +77,8 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if self.get(i).entity]):
+        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if
+                self.get(i).entity]):
             return
 
         buttons_keys = {
