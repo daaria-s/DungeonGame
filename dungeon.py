@@ -44,6 +44,8 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
+        level = self.generate_level(0, 3)
+
         self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
 
         self.entities_position = []
@@ -69,6 +71,48 @@ class Dungeon:
                     raise UnknownMapSymbol
         self.entities_direction = [(0, 0) for i in self.entities_position]
 
+    def generate_level(self, enter_x, enter_y, prev_room=None, next_room=None):
+        if not prev_room:
+            next_room = 2
+        if not next_room:
+            next_room = prev_room + 1
+
+        map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+
+        if enter_x in (0, 9):
+            map[abs(enter_x - 1)][enter_y] = 'P'
+        else:
+            map[enter_x][abs(enter_y - 1)] = 'P'
+
+        map[enter_x][enter_y] = str(prev_room)
+        n = 9 if enter_x == 0 else 0
+        exit_x, exit_y = enter_x, enter_y
+        while (exit_x, exit_y) == (enter_x, enter_y):
+            exit_x, exit_y = random.choice(
+                [(random.randint(1, 8), random.choice([0, 10])), (n, random.randint(1, 10))])
+        map[exit_x][exit_y] = str(next_room)
+        for i in range(random.randint(2, 4)):
+            x, y = 0, 0
+            while map[x][y] != '.':
+                x, y = random.randint(1, 8), random.randint(1, 9)
+            map[x][y] = 'E'
+        return map
+
+    def load_map(self, user_name):
+        pass
+
+    def save_map(self):
+        pass
+
     def get(self, coords, diff=(0, 0)):
         if 0 <= coords[1] + diff[1] < len(self.map_):
             if 0 <= coords[0] + diff[0] < len(self.map_[0]):
@@ -77,7 +121,8 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if self.get(i).entity]):
+        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in
+                self.entities_position[1:] if self.get(i).entity]):
             return
 
         buttons_keys = {
@@ -114,7 +159,8 @@ class Dungeon:
         res = []
 
         for i in range(1, len(self.entities_position)):
-            if self.get(self.entities_position[i]).entity and not self.get(self.entities_position[i]).entity.alive:
+            if self.get(self.entities_position[i]).entity and not self.get(
+                    self.entities_position[i]).entity.alive:
                 self.get(self.entities_position[i]).entity = None
                 continue
             if not self.get(self.entities_position[i]).entity:
