@@ -44,7 +44,7 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        level = self.generate_level(0, 3)
+        level = self.generate_level(0, 3, 6, 11)
 
         self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
 
@@ -62,7 +62,7 @@ class Dungeon:
                     self.entities_position.append((k, i))
                 elif level[i][k] == 'P':
                     self.map_[i][k].entity = Player((k, i))
-                    self.entities_position.append((k, i))
+                    self.entities_position.insert(0, (k, i))
                 elif level[i][k].isdigit():
                     self.map_[i][k].decor.append(Teleport((k, i), self.map_[i][k]))
 
@@ -71,8 +71,9 @@ class Dungeon:
                     raise UnknownMapSymbol
         self.entities_direction = [(0, 0) for i in self.entities_position]
 
-    def generate_level(self, enter_x, enter_y, prev_room=None, next_room=None):
+    def generate_level(self, enter_x, enter_y, exit_x, exit_y, prev_room=None, next_room=None):
         if not prev_room:
+            prev_room = 0
             next_room = 2
         if not next_room:
             next_room = prev_room + 1
@@ -94,17 +95,15 @@ class Dungeon:
             map[enter_x][abs(enter_y - 1)] = 'P'
 
         map[enter_x][enter_y] = str(prev_room)
-        n = 9 if enter_x == 0 else 0
-        exit_x, exit_y = enter_x, enter_y
-        while (exit_x, exit_y) == (enter_x, enter_y):
-            exit_x, exit_y = random.choice(
-                [(random.randint(1, 8), random.choice([0, 10])), (n, random.randint(1, 10))])
+
         map[exit_x][exit_y] = str(next_room)
-        for i in range(random.randint(2, 4)):
+
+        for i in range(random.randint(3, 4)):
             x, y = 0, 0
             while map[x][y] != '.':
                 x, y = random.randint(1, 8), random.randint(1, 9)
             map[x][y] = 'E'
+
         return map
 
     def load_map(self, user_name):
