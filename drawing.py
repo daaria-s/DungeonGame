@@ -26,7 +26,12 @@ class Drawing:
         for obj in dungeon_.all_objects:
             self.surf.blit(*obj.show())
 
-    def objects(self, dungeon_):
+    def entities(self, dungeon_):
+        for entity in dungeon_.entities:
+            self.surf.blit(*entity.show())
+
+    def entities(self, dungeon_):
+        self.surf.blit(dungeon_.background, apply((0, 0)))
         for entity in dungeon_.entities:
             self.surf.blit(*entity.show())
 
@@ -70,7 +75,6 @@ class Drawing:
     def inventory(self, dungeon_):
         player_ = dungeon_.player
         row, col = 0, 0
-        print(player_.inventory)
         for obj in player_.inventory:
             self.inventory_background_image.blit(self.key_images[obj],
                                                  (INVENTORY_INDENT + 3 + col * (INVENTORY_INDENT + INVENTORY_IMAGE_SIZE[0]),

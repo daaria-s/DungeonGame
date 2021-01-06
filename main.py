@@ -55,7 +55,7 @@ if __name__ == '__main__':
                     dungeon.enemies_move()
 
                 drawing.top_panel(dungeon)
-                drawing.objects(dungeon)
+                drawing.entities(dungeon)
 
             pygame.display.flip()
             clock.tick(FPS)

@@ -2,7 +2,9 @@ from objects import Wall, Empty
 from entity import Player, Enemy
 import pygame
 import config
+from config import *
 import random
+from PIL import Image
 
 
 class UnknownMapSymbol(Exception):
@@ -30,12 +32,21 @@ class Dungeon:
         self.entities = [self.player, *self.enemies]
 
         self.objects = []
+        empty = Image.open('Sprites/ground/idle/00.png')
+        wall = Image.open('Sprites/wall/idle/00.png')
+        background = Image.new('RGB', (len(level[0]) * TILE, len(level) * TILE), (255, 255, 255))
         for i in range(len(level)):
             for k in range(len(level[i])):
                 if level[i][k] == '.':
                     self.objects.append(Empty((k, i)))
+                    background.paste(empty, (k * TILE, i * TILE))
                 elif level[i][k] == 'W':
                     self.objects.append(Wall((k, i)))
+                    background.paste(wall, (k * TILE, i * TILE))
+        self.background = pygame.image.fromstring(background.tobytes(),
+                                                  background.size,
+                                                  background.mode)
+
         self.all_objects = [*self.enemies, self.player, *self.objects]
 
     def get(self, coords, diff=(0, 0)):
@@ -81,7 +92,7 @@ class Dungeon:
                 continue
 
             res.append(enemy.interaction(self.get(enemy.position, diff)))
-        print(res)
+
         if not any(res):
             config.TURN = 1
             for enemy in self.enemies:
