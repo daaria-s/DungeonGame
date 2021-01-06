@@ -1,71 +1,21 @@
 import pygame
 import config
 from config import *
-from objects import buttons, background, Background, Object, settings, Slider, sliders
 from functions import *
 from entity import Entity
 
 
+# EDIT
+# delete this class
 class Drawing:
 
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(load_image('Sprites/panel/health.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(load_image('Sprites/panel/action_points.png'), PANEL_IMAGE_SIZE)
-        self.inventory_image = pygame.transform.scale(load_image('Sprites/panel/inventory.png'), PANEL_IMAGE_SIZE)
-        self.save_image = pygame.transform.scale(load_image('Sprites/panel/save.png'), PANEL_IMAGE_SIZE)
-        self.exit_image = pygame.transform.scale(load_image('Sprites/panel/exit.png'), PANEL_IMAGE_SIZE)
-        self.inventory_background_image = load_image('Sprites/game/inventory.png')
-        self.key_images = {
-            'key': pygame.transform.scale(load_image('Sprites/keys/blue/die/00.png'), INVENTORY_IMAGE_SIZE)
-        }
-
     def dungeon(self, dungeon_):
         self.surf.blit(dungeon_.background, apply((0, 0)))
         for entity in dungeon_.entities:
             self.surf.blit(*entity.show())
-
-    def saved_games(self, surf):
-        background.draw(surf)
-
-    def menu(self, surf):
-        background.draw(surf)
-        buttons.draw(surf)
-
-    def settings(self, surf):
-        small_surf = pygame.Surface((406, 296))
-        small_surf.fill((32, 32, 32))
-        Object(0, 0, 'settings/panel_settings.png')
-        Object(40, 50, 'settings/music.png')
-        Object(40, 140, 'settings/sounds.png')
-        Object(200, 70, 'settings/scrollbar.png')
-        Object(200, 160, 'settings/scrollbar.png')
-        settings.draw(small_surf)
-        sliders.draw(small_surf)
-        surf.blit(small_surf, (90, 140))
-        return small_surf
-      
-    def top_panel(self, dungeon_):
-        player_ = dungeon_.player
-        font = pygame.font.Font(None, 40)
-        pygame.draw.rect(self.surf, PANEL_COLOR, (0, 0, WIDTH, PANEL_HEIGHT))
-        self.surf.blit(self.player_image, (10, 10))
-        self.surf.blit(self.health_image, (50, 10))
-        text = font.render(str(player_.hit_points) + '/' + str(player_.max_hit_points), True, HP_COLOR)
-        self.surf.blit(text, (90, 13))
-        self.surf.blit(self.damage_image, (170, 10))
-        text = font.render(str(player_.damage), True, DAMAGE_COLOR)
-        self.surf.blit(text, (210, 13))
-        self.surf.blit(self.action_points_image, (250, 10))
-        text = font.render(str(player_.action_points) + '/' + str(player_.max_action_points),
-                           True, ACTION_POINTS_COLOR)
-        self.surf.blit(text, (290, 13))
-        self.surf.blit(self.inventory_image, (450, 10))
-        self.surf.blit(self.save_image, (500, 10))
-        self.surf.blit(self.exit_image, (550, 10))
 
     def bottom_panel(self, dungeon_, coords):
         pygame.draw.rect(self.surf, PANEL_COLOR, (0, 550, WIDTH, PANEL_HEIGHT))

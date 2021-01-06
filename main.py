@@ -1,12 +1,10 @@
 import pygame
+import sys
 from config import *
 import config
 from drawing import Drawing
 from dungeon import Dungeon
-from music import Music
-from menu import Menu
-import sys
-from objects import buttons, settings, sliders, Slider
+from interface import *
 
 
 class Game:
@@ -17,106 +15,155 @@ class Game:
 
         self.drawing = Drawing(self.screen)
         self.dungeon = Dungeon()
-        self.music = Music()
-        self.menu = Menu(self.screen)
 
-        self.first_slider = Slider(345, 61, 'settings/slider.png')
-        self.second_slider = Slider(345, 151, 'settings/slider.png')
+        self.windows = {
+            'menu': (self.menu_update, self.menu_event_handler),
+            'settings': (self.settings_update, self.settings_event_handler),
+            'load': (self.load_update, self.load_event_handler),
+            'exit': (lambda: sys.exit(1), None),
+            'game': (self.game_update, self.game_event_handler),
+            'inventory': (self.inventory_update, self.inventory_event_handler)
+        }
+        self.updater, self.event_handler = self.windows['menu']
+
+        self.menu_objects = [
+            Image('menu/background', (0, 0)),
+            Image('menu/title', (192, 10)),
+            Button('menu/buttons/play', (192, 100), 'game'),
+            Button('menu/buttons/load', (192, 200), 'load'),
+            Button('menu/buttons/settings', (192, 300), 'settings'),
+            Button('menu/buttons/exit', (192, 400), 'exit'),
+            Image('menu/fire', (40, 100)),
+            Image('menu/fire', (390, 100))
+        ]
+
+        self.settings_objects = [
+            Panel('settings/panel', (192, 100), 'menu'),
+            Image('settings/music', (212, 170)),
+            Image('settings/sounds', (212, 240)),
+            Image('settings/scrollbar', (272, 170)),
+            Image('settings/scrollbar', (272, 240)),
+            Slider('settings/slider', (272, 170), (272, 372)),
+            Slider('settings/slider', (272, 240), (272, 372))
+            
+        ]
+
+        self.game_objects = [
+            Image('game/panel/background', (0, 0)),
+            Image('game/panel/action_points', (250, 10)),
+            Text(self.dungeon.player, 'action_points', (290, 13), ACTION_POINTS_COLOR),
+            Image('game/panel/damage', (170, 10)),
+            Text(self.dungeon.player, 'damage', (210, 13), DAMAGE_COLOR),
+            Button('game/panel/exit', (550, 10), 'menu'),
+            Image('game/panel/health', (50, 10)),
+            Text(self.dungeon.player, 'hit_points', (90, 13), HP_COLOR),
+            Button('game/panel/inventory', (450, 10), 'inventory'),
+            Button('game/panel/save', (500, 10), 'save')
+        ]
+
+        self.inventory_objects = [
+            Panel('game/inventory', (192, 100), 'game')
+        ]
+
+    def menu_event_handler(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(1)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for obj in self.menu_objects:
+                    target = obj.press(event.pos)
+                    if target:
+                        return target
+
+        for obj in self.menu_objects:
+            obj.move(pygame.mouse.get_pos())
+
+        return 'menu'
+
+    def menu_update(self):
+        for obj in self.menu_objects:
+            self.screen.blit(*obj.show())
+
+    def settings_event_handler(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for obj in self.settings_objects:
+                    target = obj.press(event.pos)
+                    if target:
+                        return target
+            elif event.type == pygame.MOUSEBUTTONUP:
+                for obj in self.settings_objects:
+                    if isinstance(obj, Slider):
+                        obj.unpress(event.pos)
+            elif event.type == pygame.MOUSEMOTION:
+                for obj in self.settings_objects:
+                    obj.move(event.pos)
+        return 'settings'
+
+    def settings_update(self):
+        for obj in self.settings_objects:
+            self.screen.blit(*obj.show())
+
+    def load_event_handler(self, events):
+        for event in events:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                return 'menu'
+        return 'load'
+
+    def load_update(self):
+        pass
+
+    def game_event_handler(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if config.TURN == 1:
+                    self.dungeon.player_move(event.key)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                for obj in self.game_objects:
+                    target = obj.press(event.pos)
+                    if target:
+                        return target
+
+        return 'game'
+
+    def game_update(self):
+        if config.TURN == 2:
+            self.dungeon.enemies_move()
+
+        for obj in self.game_objects:
+            self.screen.blit(*obj.show())
+
+        self.drawing.dungeon(self.dungeon)
+
+    def inventory_update(self):
+        pass
+
+    def inventory_event_handler(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit(1)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                for obj in self.inventory_objects:
+                    target = obj.press(event.pos)
+                    if target:
+                        return target
+        return 'inventory'
+
+    def run(self):
+        clock = pygame.time.Clock()
+        while True:
+            self.updater, self.event_handler = self.windows[self.event_handler(pygame.event.get())]
+            self.updater()
+            pygame.display.flip()
+            clock.tick(FPS)
 
     def exit(self):
-        sys.exit()
-
-    def run_menu(self):
-        self.music.menu_music()
-        running = True
-
-        self.drawing.menu(self.screen)
-        while running:
-            for event in pygame.event.get():
-                self.music.update(event)
-                if event.type == pygame.QUIT:
-                    running = False
-                if event.type == pygame.MOUSEMOTION:
-                    self.menu.start.motion(*pygame.mouse.get_pos())
-                    self.menu.load.motion(*pygame.mouse.get_pos())
-                    self.menu.settings.motion(*pygame.mouse.get_pos())
-                    self.menu.exit.motion(*pygame.mouse.get_pos())
-                    buttons.draw(self.screen)
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.menu.start.pressed(*pygame.mouse.get_pos(), self.run_game)
-                    self.menu.load.pressed(*pygame.mouse.get_pos(), self.choose_game)
-                    self.menu.exit.pressed(*pygame.mouse.get_pos(), self.exit)
-                    self.menu.settings.pressed(*pygame.mouse.get_pos(), self.show_settings)
-
-            pygame.display.flip()
+        pygame.quit()
+        sys.exit(1)
 
 
-    def show_settings(self):
-        self.menu.settings_open = True
-        clock = pygame.time.Clock()
-        running = True
-        while running:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.exit()
-                x_pos, y_pos = pygame.mouse.get_pos()
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if pygame.mouse.get_focused() and not (90 < x_pos < 496 and 140 < y_pos < 436):
-                        self.drawing.menu(self.screen)
-                        return
-                sliders.update(x_pos - 90, y_pos - 140, event)
-                self.music.settings(self.first_slider.rect.x, self.second_slider.rect.x)
-            self.drawing.settings(self.screen)
-            pygame.display.flip()
-            clock.tick(100)
-
-    def choose_game(self):
-        print('load')
-
-    def run_game(self):
-        self.music.game_music()
-        self.screen.fill((42, 42, 42))
-        self.drawing.dungeon(self.dungeon)
-        self.drawing.bottom_panel(self.dungeon, (0, 0))
-        clock = pygame.time.Clock()
-        running = True
-        in_inventory = False
-        while running:
-            if not config.LOSE:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        self.exit()
-                if event.type == pygame.KEYDOWN:
-                    if config.TURN == 1 and not in_inventory:
-                        self.dungeon.player_move(event.key)
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if event.button == 1 and not in_inventory:
-                        self.drawing.bottom_panel(self.dungeon, event.pos)
-
-                        # top panel buttons pressed
-                        if 10 <= event.pos[1] <= 10 + PANEL_IMAGE_SIZE[1]:
-                            if 450 <= event.pos[0] <= 450 + PANEL_IMAGE_SIZE[0]:  # inventory
-                                self.drawing.inventory(self.dungeon)
-                                in_inventory = True
-                            if 500 <= event.pos[0] <= 500 + PANEL_IMAGE_SIZE[0]:  # save
-                                print('SAVE')
-                            if 550 <= event.pos[0] <= 550 + PANEL_IMAGE_SIZE[0]:  # exit
-                                sys.exit(1)
-                    elif event.button == 1 and in_inventory:
-                        if event.pos[0] < 100 or event.pos[0] > 500 or event.pos[1] < 100 or event.pos[1] > 500:
-                            in_inventory = False
-                            self.screen.fill(BLACK)
-                            self.drawing.dungeon(self.dungeon)
-                            self.drawing.bottom_panel(self.dungeon, (0, 0))
-                if in_inventory:
-                    pass
-                else:
-                    if config.TURN == 2:
-                        self.dungeon.enemies_move()
-
-                self.drawing.top_panel(self.dungeon)
-                self.drawing.dungeon(self.dungeon)
-                clock.tick(FPS)
-
-
-Game().run_menu()
+Game().run()

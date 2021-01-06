@@ -5,12 +5,14 @@ from config import *
 
 class Animator:
 
-    def __init__(self, path, static=False):
+    def __init__(self, path, static=False, cycle=False):
         self.animations = {i: [load_image(path + '/' + i + '/' + k) for k in os.listdir(path + '/' + i)] for i in os.listdir(path)}
         self.animation = 'idle'
         self.counter = 0
         self.sub_counter = 0
+
         self.static = static
+        self.cycle = cycle
 
         self.shift = (0, 0)
 
@@ -24,7 +26,10 @@ class Animator:
                 if self.animation == 'die':
                     self.counter -= 1
                 else:
-                    self.start('idle')
+                    if self.cycle:
+                        self.start(self.animation)
+                    else:
+                        self.start('idle')
         return self.animations[self.animation][self.counter], self.shift
 
     def start(self, name):
