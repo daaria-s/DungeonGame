@@ -1,75 +1,55 @@
-from objects import Teleport, Wall, Empty
+from objects import Wall, Empty
 from entity import Player, Enemy
 import pygame
 import config
+from config import *
 import random
+from PIL import Image
 
 
 class UnknownMapSymbol(Exception):
     pass
 
 
-class Cell:
-
-    def __init__(self):
-        self.base = None
-        self.decor = []
-        self.entity = None
-
-    def show_base(self, surf):
-        surf.blit(*self.base.show())
-
-    def show_decor(self, surf):
-        for i in self.decor:
-            surf.blit(*i.show())
-
-    def show_entity(self, surf):
-        if self.entity:
-            surf.blit(*self.entity.show())
-
-
 class Dungeon:
 
     def __init__(self):
-        # сделать случайную генерацию карты
-        # и вынести это в отдельный метод
-        level = [['W', 'W', 'W', '2', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-                 ['W', '.', '.', 'P', '.', '.', '.', '.', '.', '.', '.', 'W'],
+        # EDIT
+        # remake generate level function
+        level = [['W', 'W', 'W', '.', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-                 ['W', '.', '.', '.', '.', 'E', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-                 ['W', '.', '.', '.', '.', '.', '.', '.', 'E', '.', '.', 'W'],
-                 ['W', '.', '.', '.', 'E', '.', '.', '.', '.', '.', '.', '3'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        level = self.generate_level(0, 3, 6, 11)
+        self.player = Player((1, 1))
+        self.enemies = [
+          Enemy((5, 2)),
+          Enemy((3, 4)),
+          Enemy((7, 1))
+        ]
+        self.entities = [self.player, *self.enemies]
 
-        self.map_ = [[Cell() for _ in range(len(level[i]))] for i in range(len(level))]
-
-        self.entities_position = []
-
+        self.objects = []
+        empty = Image.open('Sprites/ground/idle/00.png')
+        wall = Image.open('Sprites/wall/idle/00.png')
+        background = Image.new('RGB', (len(level[0]) * TILE, len(level) * TILE), (255, 255, 255))
         for i in range(len(level)):
             for k in range(len(level[i])):
-                if level[i][k] == 'W':
-                    self.map_[i][k].base = Wall((k, i))
-                else:
-                    self.map_[i][k].base = Empty((k, i))
-
-                if level[i][k] == 'E':
-                    self.map_[i][k].entity = Enemy((k, i))
-                    self.entities_position.append((k, i))
-                elif level[i][k] == 'P':
-                    self.map_[i][k].entity = Player((k, i))
-                    self.entities_position.insert(0, (k, i))
-                elif level[i][k].isdigit():
-                    self.map_[i][k].decor.append(Teleport((k, i), self.map_[i][k]))
-
-                if not self.map_[i][k]:
-                    print(level[i][k])
-                    raise UnknownMapSymbol
-        self.entities_direction = [(0, 0) for i in self.entities_position]
+                if level[i][k] == '.':
+                    self.objects.append(Empty((k, i)))
+                    background.paste(empty, (k * TILE, i * TILE))
+                elif level[i][k] == 'W':
+                    self.objects.append(Wall((k, i)))
+                    background.paste(wall, (k * TILE, i * TILE))
+        self.background = pygame.image.fromstring(background.tobytes(),
+                                                  background.size,
+                                                  background.mode)
 
     def generate_level(self, enter_x, enter_y, exit_x, exit_y, prev_room=None, next_room=None):
         if not prev_room:
@@ -113,62 +93,47 @@ class Dungeon:
         pass
 
     def get(self, coords, diff=(0, 0)):
-        if 0 <= coords[1] + diff[1] < len(self.map_):
-            if 0 <= coords[0] + diff[0] < len(self.map_[0]):
-                return self.map_[coords[1] + diff[1]][coords[0] + diff[0]]
-        return False
+        for entity in self.entities:
+            if entity.position == (coords[0] + diff[1], coords[1] + diff[0]):
+                return entity
+        for obj in self.objects:
+            if obj.position == (coords[0] + diff[1], coords[1] + diff[0]):
+                return obj
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in
-                self.entities_position[1:] if self.get(i).entity]):
+        if any([i.animator.animation not in ['idle', 'die'] for i in self.enemies]):
             return
 
         buttons_keys = {
-            pygame.K_LEFT: (-1, 0),
-            pygame.K_RIGHT: (1, 0),
-            pygame.K_UP: (0, -1),
-            pygame.K_DOWN: (0, 1)
+            pygame.K_LEFT: (0, -1),
+            pygame.K_RIGHT: (0, 1),
+            pygame.K_UP: (-1, 0),
+            pygame.K_DOWN: (1, 0)
         }
 
-        player = self.get(self.entities_position[0]).entity
-
-        if player.animation.name != 'IDLE':
+        if self.player.animator.animation != 'idle':
             return
         if button not in buttons_keys.keys():
             return
 
-        target = self.get(self.entities_position[0], buttons_keys[button])
-
-        if not target:
-            return
-
-        player.interaction(target)
-        self.get(self.entities_position[0]).entity = None
-        self.entities_position[0] = player.position
-        self.entities_direction[0] = (-buttons_keys[button][0], -buttons_keys[button][1])
-        self.get(player.position).entity = player
+        self.player.interaction(self.get(self.player.position, buttons_keys[button]))
 
     def enemies_move(self):
 
-        if self.get(self.entities_position[0]).entity.animation.name != 'IDLE':
+        if self.player.animator.animation != 'idle':
             return
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
-        player_pos = self.entities_position[0]
         blocked_cells = []
-        for i in range(1, len(self.entities_position)):
-            if self.get(self.entities_position[i]).entity and not self.get(
-                    self.entities_position[i]).entity.alive:
-                self.get(self.entities_position[i]).entity = None
-                continue
-            if not self.get(self.entities_position[i]).entity:
-                continue
-            if self.get(self.entities_position[i]).entity.name != 'enemy':
-                continue
 
-            enemy_pos = self.entities_position[i]
+        for enemy in self.enemies:
+            if not enemy.alive:
+                continue
+                
+            player_pos = self.player.position
+            enemy_pos = enemy.position
             if random.randint(0, 1):
                 if enemy_pos[0] != player_pos[0]:
                     diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
@@ -183,26 +148,14 @@ class Dungeon:
             while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
                 diff = options[random.randint(0, len(options) - 1)]
             blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
-            enemy = self.get(self.entities_position[i]).entity
 
-            if enemy.animation.name != 'IDLE':
+            if enemy.animator.animation != 'idle':
                 res.append(True)
                 continue
 
-            target = self.get(self.entities_position[i], diff)
-
-            if not target:
-                return
-
-            res.append(enemy.interaction(target))
-            self.get(self.entities_position[i]).entity = None
-            self.entities_position[i] = enemy.position
-            self.entities_direction[i] = (-diff[0], -diff[1])
-            self.get(self.entities_position[i]).entity = enemy
+            res.append(enemy.interaction(self.get(enemy.position, diff)))
 
         if not any(res):
             config.TURN = 1
-            for i in range(1, len(self.entities_position)):
-                if self.get(self.entities_position[i]).entity:
-                    enemy = self.get(self.entities_position[i]).entity
-                    enemy.action_points = enemy.max_action_points
+            for enemy in self.enemies:
+                enemy.action_points = enemy.max_action_points

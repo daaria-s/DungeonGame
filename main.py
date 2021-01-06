@@ -36,7 +36,6 @@ class Game:
                 self.music.update(event)
                 if event.type == pygame.QUIT:
                     running = False
-
                 if event.type == pygame.MOUSEMOTION:
                     self.menu.start.motion(*pygame.mouse.get_pos())
                     self.menu.load.motion(*pygame.mouse.get_pos())
@@ -50,6 +49,7 @@ class Game:
                     self.menu.settings.pressed(*pygame.mouse.get_pos(), self.show_settings)
 
             pygame.display.flip()
+
 
     def show_settings(self):
         self.menu.settings_open = True
@@ -80,30 +80,43 @@ class Game:
         self.drawing.bottom_panel(self.dungeon, (0, 0))
         clock = pygame.time.Clock()
         running = True
+        in_inventory = False
         while running:
             if not config.LOSE:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
                         self.exit()
-                    if event.type == pygame.KEYDOWN:
-                        if config.TURN == 1:
-                            self.music.move()
-                            self.dungeon.player_move(event.key)
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        if event.button == 1:
-                            self.drawing.bottom_panel(self.dungeon, event.pos)
+                if event.type == pygame.KEYDOWN:
+                    if config.TURN == 1 and not in_inventory:
+                        self.dungeon.player_move(event.key)
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1 and not in_inventory:
+                        self.drawing.bottom_panel(self.dungeon, event.pos)
 
-                if config.TURN == 2:
-                    self.dungeon.enemies_move()
+                        # top panel buttons pressed
+                        if 10 <= event.pos[1] <= 10 + PANEL_IMAGE_SIZE[1]:
+                            if 450 <= event.pos[0] <= 450 + PANEL_IMAGE_SIZE[0]:  # inventory
+                                self.drawing.inventory(self.dungeon)
+                                in_inventory = True
+                            if 500 <= event.pos[0] <= 500 + PANEL_IMAGE_SIZE[0]:  # save
+                                print('SAVE')
+                            if 550 <= event.pos[0] <= 550 + PANEL_IMAGE_SIZE[0]:  # exit
+                                sys.exit(1)
+                    elif event.button == 1 and in_inventory:
+                        if event.pos[0] < 100 or event.pos[0] > 500 or event.pos[1] < 100 or event.pos[1] > 500:
+                            in_inventory = False
+                            self.screen.fill(BLACK)
+                            self.drawing.dungeon(self.dungeon)
+                            self.drawing.bottom_panel(self.dungeon, (0, 0))
+                if in_inventory:
+                    pass
+                else:
+                    if config.TURN == 2:
+                        self.dungeon.enemies_move()
 
                 self.drawing.top_panel(self.dungeon)
-                self.drawing.entities(self.dungeon)
-                self.drawing.fps(clock)
-
-                pygame.display.flip()
+                self.drawing.dungeon(self.dungeon)
                 clock.tick(FPS)
-
-    pygame.quit()
 
 
 Game().run_menu()

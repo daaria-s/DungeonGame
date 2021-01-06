@@ -2,6 +2,8 @@ import pygame
 import config
 from config import *
 from objects import buttons, background, Background, Object, settings, Slider, sliders
+from functions import *
+from entity import Entity
 
 
 class Drawing:
@@ -9,17 +11,22 @@ class Drawing:
     def __init__(self, surf):
         self.surf = surf
 
-        self.player_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.health_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.damage_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
-        self.action_points_image = pygame.transform.scale(pygame.image.load('Sprites/wall.png'), PANEL_IMAGE_SIZE)
+        self.player_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.health_image = pygame.transform.scale(load_image('Sprites/panel/health.png'), PANEL_IMAGE_SIZE)
+        self.damage_image = pygame.transform.scale(load_image('Sprites/panel/damage.png'), PANEL_IMAGE_SIZE)
+        self.action_points_image = pygame.transform.scale(load_image('Sprites/panel/action_points.png'), PANEL_IMAGE_SIZE)
+        self.inventory_image = pygame.transform.scale(load_image('Sprites/panel/inventory.png'), PANEL_IMAGE_SIZE)
+        self.save_image = pygame.transform.scale(load_image('Sprites/panel/save.png'), PANEL_IMAGE_SIZE)
+        self.exit_image = pygame.transform.scale(load_image('Sprites/panel/exit.png'), PANEL_IMAGE_SIZE)
+        self.inventory_background_image = load_image('Sprites/game/inventory.png')
+        self.key_images = {
+            'key': pygame.transform.scale(load_image('Sprites/keys/blue/die/00.png'), INVENTORY_IMAGE_SIZE)
+        }
 
     def dungeon(self, dungeon_):
-        for i in range(len(dungeon_.map_)):
-            for k in range(len(dungeon_.map_[i])):
-                dungeon_.get((k, i)).show_base(self.surf)
-                dungeon_.get((k, i)).show_decor(self.surf)
-                dungeon_.get((k, i)).show_entity(self.surf)
+        self.surf.blit(dungeon_.background, apply((0, 0)))
+        for entity in dungeon_.entities:
+            self.surf.blit(*entity.show())
 
     def saved_games(self, surf):
         background.draw(surf)
@@ -40,28 +47,9 @@ class Drawing:
         sliders.draw(small_surf)
         surf.blit(small_surf, (90, 140))
         return small_surf
-
-    def entities(self, dungeon_):
-        coordinates = []
-        for i in range(len(dungeon_.entities_position)):
-            x1, y1 = dungeon_.entities_position[i]
-            x2, y2 = x1 + dungeon_.entities_direction[i][0], y1 + dungeon_.entities_direction[i][1]
-
-            pygame.draw.rect(self.surf, BLACK, (*config.apply((x1 * TILE, y1 * TILE)), TILE, TILE))
-            pygame.draw.rect(self.surf, BLACK, (*config.apply((x2 * TILE, y2 * TILE)), TILE, TILE))
-
-            coordinates.append((x1, y1))
-            coordinates.append((x2, y2))
-
-        for coords in set(coordinates):
-            dungeon_.get(coords).show_base(self.surf)
-        for coords in set(coordinates):
-            dungeon_.get(coords).show_decor(self.surf)
-        for coords in set(coordinates):
-            dungeon_.get(coords).show_entity(self.surf)
-
+      
     def top_panel(self, dungeon_):
-        player_ = dungeon_.get(dungeon_.entities_position[0]).entity
+        player_ = dungeon_.player
         font = pygame.font.Font(None, 40)
         pygame.draw.rect(self.surf, PANEL_COLOR, (0, 0, WIDTH, PANEL_HEIGHT))
         self.surf.blit(self.player_image, (10, 10))
@@ -75,13 +63,15 @@ class Drawing:
         text = font.render(str(player_.action_points) + '/' + str(player_.max_action_points),
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 13))
+        self.surf.blit(self.inventory_image, (450, 10))
+        self.surf.blit(self.save_image, (500, 10))
+        self.surf.blit(self.exit_image, (550, 10))
 
     def bottom_panel(self, dungeon_, coords):
         pygame.draw.rect(self.surf, PANEL_COLOR, (0, 550, WIDTH, PANEL_HEIGHT))
         en_ = dungeon_.get((coords[0] // TILE, (coords[1] - PANEL_HEIGHT) // TILE))
-        if not en_ or not en_.entity:
+        if not en_ or not isinstance(en_, Entity):
             return
-        en_ = en_.entity
         font = pygame.font.Font(None, 40)
         self.surf.blit(self.player_image, (10, 560))
         self.surf.blit(self.health_image, (50, 560))
@@ -95,8 +85,15 @@ class Drawing:
                            True, ACTION_POINTS_COLOR)
         self.surf.blit(text, (290, 563))
 
-    def fps(self, clock_):
-        font = pygame.font.Font(None, 40)
-        text = font.render(str(round(clock_.get_fps())), True, DAMAGE_COLOR)
-        pygame.draw.rect(self.surf, PANEL_COLOR, (550, 13, 50, PANEL_HEIGHT - 13))
-        self.surf.blit(text, (550, 13))
+    def inventory(self, dungeon_):
+        player_ = dungeon_.player
+        row, col = 0, 0
+        for obj in player_.inventory:
+            self.inventory_background_image.blit(self.key_images[obj],
+                                                 (INVENTORY_INDENT + 3 + col * (INVENTORY_INDENT + INVENTORY_IMAGE_SIZE[0]),
+                                                  INVENTORY_INDENT + 3 + row * (INVENTORY_INDENT + INVENTORY_IMAGE_SIZE[1])))
+            col += 1
+            if col == 5:
+                col = 0
+                row += 1
+        self.surf.blit(self.inventory_background_image, (100, 100))
