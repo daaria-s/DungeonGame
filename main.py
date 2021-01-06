@@ -86,10 +86,14 @@ class Game:
                     if event.type == pygame.QUIT:
                         self.exit()
                     if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_1:
+                            print('save_to_base')
+                            self.dungeon.save_level()
                         if config.TURN == 1:
                             self.music.move()
                             self.dungeon.player_move(event.key)
                     if event.type == pygame.MOUSEBUTTONDOWN:
+
                         if event.button == 1:
                             self.drawing.bottom_panel(self.dungeon, event.pos)
 

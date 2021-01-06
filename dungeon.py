@@ -3,6 +3,7 @@ from entity import Player, Enemy
 import pygame
 import config
 import random
+import sqlite3
 
 
 class UnknownMapSymbol(Exception):
@@ -48,6 +49,10 @@ class Dungeon:
 
         self.entities_position = []
 
+        self.user_name = ''  # сделать ввод имени пользователем
+        self.saved = False
+        self.room_number = 1
+
         for i in range(len(level)):
             for k in range(len(level[i])):
                 if level[i][k] == 'W':
@@ -69,6 +74,39 @@ class Dungeon:
                     raise UnknownMapSymbol
         self.entities_direction = [(0, 0) for i in self.entities_position]
 
+    def save_level(self):
+        con = sqlite3.connect('dungeonBase.db')
+        cur = con.cursor()
+        print(cur.execute(
+            """SELECT user_name from users""").fetchone())
+        while not self.user_name or self.user_name in cur.execute(
+                """SELECT user_name from users""").fetchone():
+            self.user_name = input('Введите имя пользователя')
+        if not self.saved:
+            self.saved = True
+            player = self.get(self.entities_position[0]).entity
+            cur.execute(f"""INSERT INTO users(user_name, health, action_points) 
+            VALUES('{self.user_name}', '{player.hit_points}', 
+            '{player.action_points}')""").fetchall()
+
+            cur.execute(f"""INSERT INTO rooms(number, user) 
+            VALUES({self.room_number}, '{self.user_name}')""").fetchall()
+
+            for i in self.entities_position[1:]:
+                entity = self.get(i).entity
+                if entity:
+                    cur.execute(f"""INSERT INTO entities(user_name, room_number, health, 
+                    action_points, x_pos, y_pos)
+                    VALUES('{self.user_name}', '{self.room_number}', {entity.hit_points}, 
+                    {entity.action_points}, {i[0]}, {i[1]})""").fetchall()
+
+            # добавить инвентарь и объекты на карте
+
+            con.commit()
+
+    def load_map(self):
+        pass
+
     def get(self, coords, diff=(0, 0)):
         if 0 <= coords[1] + diff[1] < len(self.map_):
             if 0 <= coords[0] + diff[0] < len(self.map_[0]):
@@ -77,7 +115,8 @@ class Dungeon:
 
     def player_move(self, button):
 
-        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in self.entities_position[1:] if
+        if any([self.get(i).entity.animation.name not in ['IDLE', 'DIE'] for i in
+                self.entities_position[1:] if
                 self.get(i).entity]):
             return
 
@@ -116,7 +155,8 @@ class Dungeon:
         player_pos = self.entities_position[0]
         blocked_cells = []
         for i in range(1, len(self.entities_position)):
-            if self.get(self.entities_position[i]).entity and not self.get(self.entities_position[i]).entity.alive:
+            if self.get(self.entities_position[i]).entity and not self.get(
+                    self.entities_position[i]).entity.alive:
                 self.get(self.entities_position[i]).entity = None
                 continue
             if not self.get(self.entities_position[i]).entity:
@@ -136,7 +176,8 @@ class Dungeon:
                 elif enemy_pos[0] != player_pos[0]:
                     diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
 
-            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
+            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells or isinstance(
+                    self.get((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1])).entity, Enemy):
                 diff = options[random.randint(0, len(options) - 1)]
             blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
             enemy = self.get(self.entities_position[i]).entity
