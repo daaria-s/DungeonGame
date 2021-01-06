@@ -7,7 +7,7 @@ from functions import *
 
 class Entity:
 
-    def __init__(self, position, name, max_action_points, damage, max_hit_points):
+    def __init__(self, position, name, path, max_action_points, damage, max_hit_points):
         self.position = position
         self.name = name
 
@@ -18,7 +18,7 @@ class Entity:
         self.hit_points = max_hit_points
 
         self.alive = True
-        self.animator = Animator('Sprites/' + name)
+        self.animator = Animator('Sprites/' + path)
 
     def show(self):
         image, shift = self.animator.next_()
@@ -34,12 +34,8 @@ class Entity:
         }
         return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
-    def interaction(self, obj):
-        if obj.entity:
-            target = obj.entity
-        elif obj.base:
-            target = obj.base
-        if self.action_points == 0:
+    def interaction(self, target):
+        if not target or self.action_points == 0:
             return False
         if target.name == 'enemy' or target.name == 'player':
             self.interaction_entity(target)
@@ -52,14 +48,12 @@ class Entity:
         if self.action_points == 0 and config.TURN == 1:
             self.action_points = self.max_action_points
             config.TURN = 2
-        if obj.hit_points == 0:
+        if obj.hit_points <= 0:
             self.animator.start('move_' + self.get_direction(obj))
             self.position = obj.position
         else:
             self.animator.start('attack_' + self.get_direction(obj))
-            obj.hit_points -= 1
-            if obj.hit_points == 0:
-                obj.die()
+            obj.get_hit(self.damage)
 
     def interaction_empty(self, obj):
         self.action_points -= 1
@@ -78,6 +72,11 @@ class Entity:
     def interaction_chest(self, obj):
         pass
 
+    def get_hit(self, damage):
+        self.hit_points -= damage
+        if self.hit_points <= 0:
+            self.die()
+
     def die(self):
         self.alive = False
         self.animator.start('die')
@@ -86,7 +85,8 @@ class Entity:
 class Player(Entity):
 
     def __init__(self, position, max_action_points=3, damage=1, max_hit_points=5):
-        super().__init__(position, 'player', max_action_points, damage, max_hit_points)
+        super().__init__(position, 'player', 'player', max_action_points, damage, max_hit_points)
+        self.inventory = ['key'] * 10  # fix
 
     def interaction_teleport(self, obj):
         pass
@@ -98,5 +98,6 @@ class Player(Entity):
 
 class Enemy(Entity):
 
-    def __init__(self, position, max_action_points=2, damage=1, max_hit_points=2):
-        super().__init__(position, 'enemy', max_action_points, damage, max_hit_points)
+    def __init__(self, position, color='blue', max_action_points=2, damage=1, max_hit_points=2):
+        super().__init__(position, 'enemy', 'enemies/' + color, max_action_points, damage, max_hit_points)
+        self.color = color

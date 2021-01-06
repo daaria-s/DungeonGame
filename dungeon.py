@@ -1,4 +1,4 @@
-from objects import Teleport, Wall, Empty
+from objects import Wall, Empty
 from entity import Player, Enemy
 import pygame
 import config
@@ -23,61 +23,65 @@ class Dungeon:
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        self.map_ = [[Wall((k, i)) if level[i][k] == 'W' else Empty((k, i)) for k in range(len(level[i]))] for i in range(len(level))]
+        self.player = Player((1, 1))
+        self.enemies = [Enemy((5, 2)),
+                        Enemy((3, 4)),
+                        Enemy((7, 1))]
+        self.entities = [self.player, *self.enemies]
 
-        self.coordinates = {
-            (1, 1): Player((1, 1)),
-            (5, 2): Enemy((5, 2)),
-            (2, 3): Enemy((2, 3)),
-            (3, 0): Teleport((3, 0), 2)
-        }
-        self.player = [obj for obj in self.coordinates.values() if obj.name == 'player'][0]
-        self.enemies = [obj for obj in self.coordinates.values() if obj.name == 'enemy']
+        self.objects = []
+        for i in range(len(level)):
+            for k in range(len(level[i])):
+                if level[i][k] == '.':
+                    self.objects.append(Empty((k, i)))
+                elif level[i][k] == 'W':
+                    self.objects.append(Wall((k, i)))
+        self.all_objects = [*self.enemies, self.player, *self.objects]
 
     def get(self, coords, diff=(0, 0)):
-        return self.coordinates.get([coords[1] + diff[1]][coords[0] + diff[0]])
+        for entity in self.all_objects:
+            if entity.position == (coords[0] + diff[1], coords[1] + diff[0]):
+                return entity
 
     def player_move(self, button):
 
-        if any([i.animation.name not in ['IDLE', 'DIE'] for i in self.enemies]):
+        if any([i.animator.animation not in ['idle', 'die'] for i in self.enemies]):
             return
 
         buttons_keys = {
-            pygame.K_LEFT: (-1, 0),
-            pygame.K_RIGHT: (1, 0),
-            pygame.K_UP: (0, -1),
-            pygame.K_DOWN: (0, 1)
+            pygame.K_LEFT: (0, -1),
+            pygame.K_RIGHT: (0, 1),
+            pygame.K_UP: (-1, 0),
+            pygame.K_DOWN: (1, 0)
         }
 
-        if self.player.animation.name != 'IDLE':
+        if self.player.animator.animation != 'idle':
             return
         if button not in buttons_keys.keys():
             return
 
-        self.coordinates[self.player.position] = None
         self.player.interaction(self.get(self.player.position, buttons_keys[button]))
-        self.coordinates[self.player.position] = self.player
 
     def enemies_move(self):
 
-        if self.player.animation.name != 'IDLE':
+        if self.player.animator.animation != 'idle':
             return
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
 
         for enemy in self.enemies:
+            if not enemy.alive:
+                continue
+
             diff = options[random.randint(0, len(options) - 1)]
 
-            if enemy.animation.name != 'IDLE':
+            if enemy.animator.animation != 'idle':
                 res.append(True)
                 continue
 
-            target = self.get(enemy.position, diff)
-            self.coordinates[enemy.position] = None
-            res.append(enemy.interaction(target))
-            self.coordinates[enemy.position] = enemy
-
+            res.append(enemy.interaction(self.get(enemy.position, diff)))
+        print(res)
         if not any(res):
             config.TURN = 1
             for enemy in self.enemies:
