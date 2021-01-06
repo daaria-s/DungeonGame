@@ -26,9 +26,11 @@ class Dungeon:
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
         self.player = Player((1, 1))
-        self.enemies = [Enemy((5, 2)),
-                        Enemy((3, 4)),
-                        Enemy((7, 1))]
+        self.enemies = [
+          Enemy((5, 2)),
+          Enemy((3, 4)),
+          Enemy((7, 1))
+        ]
         self.entities = [self.player, *self.enemies]
 
         self.objects = []
@@ -81,12 +83,28 @@ class Dungeon:
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
+        blocked_cells = []
 
         for enemy in self.enemies:
             if not enemy.alive:
                 continue
+                
+            player_pos = self.player.position
+            enemy_pos = enemy.position
+            if random.randint(0, 1):
+                if enemy_pos[0] != player_pos[0]:
+                    diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
+                elif enemy_pos[1] != player_pos[1]:
+                    diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
+            else:
+                if enemy_pos[1] != player_pos[1]:
+                    diff = (0, -1) if enemy_pos[1] > player_pos[1] else (0, 1)
+                elif enemy_pos[0] != player_pos[0]:
+                    diff = (-1, 0) if enemy_pos[0] > player_pos[0] else (1, 0)
 
-            diff = options[random.randint(0, len(options) - 1)]
+            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells:
+                diff = options[random.randint(0, len(options) - 1)]
+            blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
 
             if enemy.animator.animation != 'idle':
                 res.append(True)

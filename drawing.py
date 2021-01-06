@@ -1,3 +1,7 @@
+import pygame
+import config
+from config import *
+from objects import buttons, background, Background, Object, settings, Slider, sliders
 from functions import *
 from entity import Entity
 
@@ -24,6 +28,26 @@ class Drawing:
         for entity in dungeon_.entities:
             self.surf.blit(*entity.show())
 
+    def saved_games(self, surf):
+        background.draw(surf)
+
+    def menu(self, surf):
+        background.draw(surf)
+        buttons.draw(surf)
+
+    def settings(self, surf):
+        small_surf = pygame.Surface((406, 296))
+        small_surf.fill((32, 32, 32))
+        Object(0, 0, 'settings/panel_settings.png')
+        Object(40, 50, 'settings/music.png')
+        Object(40, 140, 'settings/sounds.png')
+        Object(200, 70, 'settings/scrollbar.png')
+        Object(200, 160, 'settings/scrollbar.png')
+        settings.draw(small_surf)
+        sliders.draw(small_surf)
+        surf.blit(small_surf, (90, 140))
+        return small_surf
+      
     def top_panel(self, dungeon_):
         player_ = dungeon_.player
         font = pygame.font.Font(None, 40)
