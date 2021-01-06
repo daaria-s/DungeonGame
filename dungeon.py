@@ -47,12 +47,13 @@ class Dungeon:
                                                   background.size,
                                                   background.mode)
 
-        self.all_objects = [*self.enemies, self.player, *self.objects]
-
     def get(self, coords, diff=(0, 0)):
-        for entity in self.all_objects:
+        for entity in self.entities:
             if entity.position == (coords[0] + diff[1], coords[1] + diff[0]):
                 return entity
+        for obj in self.objects:
+            if obj.position == (coords[0] + diff[1], coords[1] + diff[0]):
+                return obj
 
     def player_move(self, button):
 

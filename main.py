@@ -16,7 +16,6 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     music = Music()
 
-    drawing.dungeon(dungeon)
     drawing.bottom_panel(dungeon, (0, 0))
 
     running = True
@@ -55,7 +54,7 @@ if __name__ == '__main__':
                     dungeon.enemies_move()
 
                 drawing.top_panel(dungeon)
-                drawing.entities(dungeon)
+                drawing.dungeon(dungeon)
 
             pygame.display.flip()
             clock.tick(FPS)

@@ -1,6 +1,3 @@
-import pygame
-import config
-from config import *
 from functions import *
 from entity import Entity
 
@@ -23,14 +20,6 @@ class Drawing:
         }
 
     def dungeon(self, dungeon_):
-        for obj in dungeon_.all_objects:
-            self.surf.blit(*obj.show())
-
-    def entities(self, dungeon_):
-        for entity in dungeon_.entities:
-            self.surf.blit(*entity.show())
-
-    def entities(self, dungeon_):
         self.surf.blit(dungeon_.background, apply((0, 0)))
         for entity in dungeon_.entities:
             self.surf.blit(*entity.show())
