@@ -14,6 +14,8 @@ class UnknownMapSymbol(Exception):
 class Dungeon:
 
     def __init__(self):
+        # EDIT
+        # remake generate level function
         level = [['W', 'W', 'W', '.', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -48,6 +50,47 @@ class Dungeon:
         self.background = pygame.image.fromstring(background.tobytes(),
                                                   background.size,
                                                   background.mode)
+
+    def generate_level(self, enter_x, enter_y, exit_x, exit_y, prev_room=None, next_room=None):
+        if not prev_room:
+            prev_room = 0
+            next_room = 2
+        if not next_room:
+            next_room = prev_room + 1
+
+        map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+
+        if enter_x in (0, 9):
+            map[abs(enter_x - 1)][enter_y] = 'P'
+        else:
+            map[enter_x][abs(enter_y - 1)] = 'P'
+
+        map[enter_x][enter_y] = str(prev_room)
+
+        map[exit_x][exit_y] = str(next_room)
+
+        for i in range(random.randint(3, 4)):
+            x, y = 0, 0
+            while map[x][y] != '.':
+                x, y = random.randint(1, 8), random.randint(1, 9)
+            map[x][y] = 'E'
+
+        return map
+
+    def load_map(self, user_name):
+        pass
+
+    def save_map(self):
+        pass
 
     def get(self, coords, diff=(0, 0)):
         for entity in self.entities:
