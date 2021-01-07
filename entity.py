@@ -11,11 +11,11 @@ class Entity:
     def __init__(self, position, name, path,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
-                 max_action_points):
+                 action_points, max_action_points):
         self.position = position
         self.name = name
 
-        self.action_points = [0, max_action_points]
+        self.action_points = [max_action_points, max_action_points]
         self.damage = [min_damage, max_damage]
         self.hit_points = [hit_points, max_hit_points]
 
@@ -50,7 +50,7 @@ class Entity:
         if self.action_points[0] == 0 and config.TURN == 1:
             self.action_points[0] = self.action_points[1]
             config.TURN = 2
-        if obj.hit_points <= 0:
+        if obj.hit_points[0] <= 0:
             self.animator.start('move_' + self.get_direction(obj))
             self.position = obj.position
         else:
@@ -89,11 +89,11 @@ class Player(Entity):
     def __init__(self, position,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
-                 max_action_points):
+                 action_points, max_action_points):
         super().__init__(position, 'player', 'player',
                          hit_points, max_hit_points,
                          min_damage, max_damage,
-                         max_action_points)
+                         action_points, max_action_points)
         self.inventory = ['key'] * 10  # fix
 
     def interaction_teleport(self, obj):
@@ -109,9 +109,9 @@ class Enemy(Entity):
     def __init__(self, position, color,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
-                 max_action_points):
+                 action_points, max_action_points):
         super().__init__(position, 'enemy', 'enemies/' + color,
                          hit_points, max_hit_points,
                          min_damage, max_damage,
-                         max_action_points)
+                         action_points, max_action_points)
         self.color = color

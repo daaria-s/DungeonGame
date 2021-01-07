@@ -7,6 +7,8 @@ if __name__ == '__main__':
     pygame.display.set_caption('Magic Dungeon')
     screen = pygame.display.set_mode(SIZE)
 
+    # EDIT
+    # fix bug with new play music when you close settings panel
     windows = {
         'menu': Window('menu', [
             Image('menu/background', (0, 0)),
@@ -17,7 +19,8 @@ if __name__ == '__main__':
             Button('menu/exit', (192, 490), 'exit', {'cycle': True}),
             Image('menu/fire', (40, 277), {'speed': 6}),
             Image('menu/fire', (407, 277), {'speed': 6})
-        ]
+        ],
+                       run_music=True
                        ),
         'settings': Window('settings', [
             AntiButton('settings/panel', (97, 152), 'menu'),
@@ -25,13 +28,13 @@ if __name__ == '__main__':
             Image('settings/sounds', (131, 330)),
             Image('settings/scrollbar', (309, 233)),
             Image('settings/scrollbar', (309, 351)),
-            Slider('settings/slider', (309, 225), (309, 442), 'set_music_volume'),
-            Slider('settings/slider', (309, 343), (309, 442), 'set_sounds_volume')
+            Slider('settings/slider', (442, 225), (309, 442), 'set_music_volume'),
+            Slider('settings/slider', (442, 343), (309, 442), 'set_sounds_volume'),
         ]
                            ),
         'load': Window('load', []),
         'exit': Window('exit', []),
-        'game': Window('game', [Dungeon()]),
+        'game': Window('game', [Dungeon()], music_name='game', run_music=True),
         'inventory': Window('inventory', [AntiButton('game/inventory', (97, 97), 'game')]),
         'save': Window('save', [])
 

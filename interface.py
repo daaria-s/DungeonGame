@@ -2,15 +2,25 @@ from animator import Animator
 import pygame
 from config import *
 import sys
+from config import music
 
 
 class Window:
 
-    def __init__(self, name, objects):
+    def __init__(self, name, objects, music_name='main', run_music=False):
         self.name = name
         self.objects = objects
+        self.music_name = music_name
+        self.run_music = run_music
+        self.first_load = True
 
     def update(self, surf, events):
+        if self.first_load:
+            if self.run_music:
+                music.play_music(self.music_name)
+            self.first_load = False
+
+        self.first_load = True
         if self.name == 'exit':
             pygame.quit()
             sys.exit()
@@ -34,7 +44,7 @@ class Window:
 
         for obj in self.objects:
             obj.show(surf)
-
+        self.first_load = False
         return self.name
 
 
@@ -150,7 +160,8 @@ class Text(Element):
         self.font = pygame.font.Font(None, 40)
 
     def show(self, surf):
-        surf.blit(self.font.render(str(getattr(self.target, self.attr_name)), True, self.color), self.position)
+        value = getattr(self.target, self.attr_name)
+        surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color), self.position)
 
 
 class Panel(Element):

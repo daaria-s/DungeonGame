@@ -2,16 +2,18 @@ import pygame
 
 
 # EDIT
-# add sounds and music to the windows
+# edit sounds and music files
 class Music:
 
     def __init__(self):
         pygame.init()
         self.sounds = {
-            'hit': pygame.mixer.Sound('Sounds/tuk.mp3')
+            'hit': pygame.mixer.Sound('Sounds/tuk.mp3'),
+            'button_down': pygame.mixer.Sound('Sounds/tuk.mp3'),
         }
         self.musics = {
-            'menu': 'Sounds/menu_music.mp3'
+            'main': 'Sounds/menu_music.mp3',
+            'game': 'Sounds/melody.mp3',
         }
 
     def play_sound(self, name):

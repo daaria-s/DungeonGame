@@ -30,11 +30,11 @@ class Dungeon(Element):
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        self.player = Player((1, 1), 5, 5, 1, 1, 5)
+        self.player = Player((1, 1), 5, 5, 1, 1, 5, 5)
         self.enemies = [
-          Enemy((5, 2), 'blue', 2, 2, 1, 1, 3),
-          Enemy((3, 4), 'blue', 2, 2, 1, 1, 3),
-          Enemy((7, 1), 'blue', 2, 2, 1, 1, 3),
+          Enemy((5, 2), 'blue', 2, 2, 1, 1, 3, 3),
+          Enemy((3, 4), 'blue', 2, 2, 1, 1, 3, 3),
+          Enemy((7, 1), 'blue', 2, 2, 1, 1, 3, 3),
         ]
 
         self.entities = [self.player, *self.enemies]
@@ -173,7 +173,7 @@ class Dungeon(Element):
         if not any(res):
             config.TURN = 1
             for enemy in self.enemies:
-                enemy.action_points = enemy.max_action_points
+                enemy.action_points[0] = enemy.action_points[1]
 
     def show(self, surf):
         if config.TURN == 2:
