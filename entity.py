@@ -112,7 +112,14 @@ class Player(Entity):
             return True
 
     def interaction_chest(self, obj):
-        pass
+        self.animator.start('attack_' + self.get_direction(obj))
+        res = obj.touch()
+        if res == '__empty__':
+            self.interaction_empty(obj)
+            return True
+        elif res:
+            self.inventory.append(res)
+            return True
 
     def interaction_teleport(self, obj):
         pass

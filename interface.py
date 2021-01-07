@@ -230,18 +230,22 @@ class Inventory(Element):
         super().__init__()
         self.base = AntiButton('game/inventory', (97, 97), 'game')
 
-        counter = 0
-        # EDIT
-        # add keys
         self.image_keys = {
             'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors')
         }
+
+        self.target = target
         self.slots = []
+        self.active_slot = None
+
+    def update(self):
+        self.slots = []
+        counter = 0
         for i in range(4):
             self.slots.append([])
             for k in range(5):
-                if counter < len(target.inventory):
-                    params = self.image_keys[target.inventory[counter]]
+                if counter < len(self.target.inventory):
+                    params = self.image_keys[self.target.inventory[counter]]
                 else:
                     params = (None, '')
                 self.slots[i].append(InventorySlot((100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
@@ -252,6 +256,7 @@ class Inventory(Element):
         self.active_slot = None
 
     def show(self, surf):
+        self.update()
         self.base.show(surf)
         for i in range(len(self.slots)):
             for k in range(len(self.slots[i])):
