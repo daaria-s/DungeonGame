@@ -20,10 +20,10 @@ class Entity:
         self.alive = True
         self.animator = Animator('Sprites/' + path)
 
-    def show(self):
+    def show(self, surf):
         image, shift = self.animator.next_()
-        return image, apply((self.position[0] * TILE + shift[0],
-                             self.position[1] * TILE + shift[1]))
+        surf.blit(image, apply((self.position[0] * TILE + shift[0],
+                                self.position[1] * TILE + shift[1])))
 
     def get_direction(self, obj):
         movement_keys = {

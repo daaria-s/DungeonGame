@@ -3,17 +3,20 @@ from entity import Player, Enemy
 import pygame
 import config
 from config import *
+from functions import *
 import random
 from PIL import Image
+from interface import Panel, Button, Element
 
 
 class UnknownMapSymbol(Exception):
     pass
 
 
-class Dungeon:
+class Dungeon(Element):
 
     def __init__(self):
+        super().__init__()
         # EDIT
         # remake generate level function
         level = [['W', 'W', 'W', '.', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
@@ -50,6 +53,14 @@ class Dungeon:
         self.background = pygame.image.fromstring(background.tobytes(),
                                                   background.size,
                                                   background.mode)
+
+        self.top_panel = Panel(self.player, True, 0)
+        self.bottom_panel = Panel(self.enemies[0], False, 550)
+        self.buttons = [
+            Button('game/panel/exit', (550, 10), 'menu'),
+            Button('game/panel/inventory', (450, 10), 'inventory'),
+            Button('game/panel/save', (500, 10), 'save')
+        ]
 
     def generate_level(self, enter_x, enter_y, exit_x, exit_y, prev_room=None, next_room=None):
         if not prev_room:
@@ -126,7 +137,7 @@ class Dungeon:
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
-        blocked_cells = []
+        # blocked_cells = []
 
         for enemy in self.enemies:
             if not enemy.alive:
@@ -162,3 +173,35 @@ class Dungeon:
             config.TURN = 1
             for enemy in self.enemies:
                 enemy.action_points = enemy.max_action_points
+
+    def show(self, surf):
+        if config.TURN == 2:
+            self.enemies_move()
+
+        surf.blit(self.background, apply((0, 0)))
+        for entity in self.entities:
+            entity.show(surf)
+
+        self.top_panel.show(surf)
+        self.bottom_panel.show(surf)
+
+        for button in self.buttons:
+            button.show(surf)
+
+    def button_down(self, mouse_pos):
+        obj = self.get((mouse_pos[0] // TILE, (mouse_pos[1] - PANEL_HEIGHT) // TILE))
+        if isinstance(obj, Enemy) and obj.alive:
+            self.bottom_panel.change_target(obj)
+        else:
+            # EDIT
+            # This doesn't work
+            self.bottom_panel.change_target(None)
+
+        for button in self.buttons:
+            res = button.button_down(mouse_pos)
+            if res:
+                return res
+
+    def key_down(self, button):
+        if config.TURN == 1:
+            self.player_move(button)
