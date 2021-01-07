@@ -61,9 +61,9 @@ class Element:
 
 class AnimatedElement(Element):
 
-    def __init__(self, path, position):
+    def __init__(self, path, position, animator_options=None):
         super().__init__()
-        self.animator = Animator(path)
+        self.animator = Animator(path, animator_options)
         self.position = position
         self.rect = self.animator.next_()[0].get_rect(topleft=position)
 
@@ -74,8 +74,8 @@ class AnimatedElement(Element):
 
 class Button(AnimatedElement):
 
-    def __init__(self, name, position, target):
-        super().__init__('Sprites/' + name, position)
+    def __init__(self, name, position, target, animator_options=None):
+        super().__init__('Sprites/' + name, position, animator_options)
         self.target = target
 
     def button_down(self, mouse_pos):
@@ -92,8 +92,8 @@ class Button(AnimatedElement):
 
 class Image(AnimatedElement):
 
-    def __init__(self, name, position):
-        super().__init__('Sprites/' + name, position)
+    def __init__(self, name, position, animator_options=None):
+        super().__init__('Sprites/' + name, position, animator_options)
 
 
 class AntiButton(AnimatedElement):
@@ -176,6 +176,5 @@ class Panel(Element):
         if new_target:
             self.target = new_target
             self.active = True
-            print('NEW TARGET')
         else:
             self.active = False

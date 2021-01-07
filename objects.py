@@ -7,7 +7,7 @@ class Object:
     def __init__(self, path, position, name):
         self.position = position
         self.name = name
-        self.animator = Animator('Sprites/' + path, True)
+        self.animator = Animator('Sprites/' + path, {'static': True})
 
     def show(self):
         return self.animator.next_()[0], apply((self.position[0] * TILE,
