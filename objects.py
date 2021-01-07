@@ -7,11 +7,12 @@ class Object:
     def __init__(self, path, position, name):
         self.position = position
         self.name = name
-        self.animator = Animator('Sprites/' + path, {'static': True})
+        self.animator = Animator('Sprites/' + path)
 
     def show(self, surf):
-        surf.blit(self.animator.next_()[0], apply((self.position[0] * TILE,
-                                                   self.position[1] * TILE)))
+        image, shift = self.animator.next_()
+        surf.blit(image, apply((self.position[0] * TILE + shift[0],
+                                self.position[1] * TILE + shift[1])))
 
 
 class Wall(Object):
@@ -37,6 +38,10 @@ class Box(Object):
 
     def __init__(self, position):
         super().__init__('box', position, 'box')
+
+    def move(self, new_position, direction):
+        self.position = new_position
+        self.animator.start('move_' + direction)
 
 
 class Chest(Object):

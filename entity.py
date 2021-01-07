@@ -36,42 +36,48 @@ class Entity:
         }
         return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
-    def interaction(self, target):
+    def interaction(self, dungeon_, movement):
+        target = dungeon_.get(self.position, movement)
         if not target or self.action_points[0] == 0:
             return False
-        if target.name == 'enemy' or target.name == 'player':
-            self.interaction_entity(target)
-        else:
-            exec('self.interaction_' + target.name + '(target)')
-        return True
+
+        keys = {
+            'enemy': [self.interaction_entity, [target]],
+            'player': [self.interaction_entity, [target]],
+            'empty': [self.interaction_empty, [target]],
+            'wall': [lambda: False, []],
+            'box': [self.interaction_box, [dungeon_, movement]],
+            'chest': [self.interaction_chest, [target]],
+            'teleport': [self.interaction_teleport, [target]]
+        }
+        if keys[target.name][0](*keys[target.name][1]):
+            self.action_points[0] -= 1
+            if self.action_points[0] == 0 and config.TURN == 1:
+                self.action_points[0] = self.action_points[1]
+                config.TURN = 2
+            return True
 
     def interaction_entity(self, obj):
-        self.action_points[0] -= 1
-        if self.action_points[0] == 0 and config.TURN == 1:
-            self.action_points[0] = self.action_points[1]
-            config.TURN = 2
         if obj.hit_points[0] <= 0:
             self.animator.start('move_' + self.get_direction(obj))
             self.position = obj.position
         else:
             self.animator.start('attack_' + self.get_direction(obj))
             obj.get_hit(self.damage)
+        return True
 
     def interaction_empty(self, obj):
-        self.action_points[0] -= 1
-        if self.action_points[0] == 0 and config.TURN == 1:
-            self.action_points[0] = self.action_points[1]
-            config.TURN = 2
         self.animator.start('move_' + self.get_direction(obj))
         self.position = obj.position
+        return True
 
-    def interaction_wall(self, obj):
-        return False
-
-    def interaction_box(self, obj):
+    def interaction_box(self, dungeon_, movement):
         pass
 
     def interaction_chest(self, obj):
+        pass
+
+    def interaction_teleport(self, obj):
         pass
 
     def get_hit(self, damage):
@@ -94,7 +100,19 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        self.inventory = ['red_key'] * 10  # fix
+        self.inventory = ['red_key'] * 10  # EDIT: fix
+
+    def interaction_box(self, dungeon_, movement):
+        next_cell = dungeon_.get(self.position, (movement[0] * 2, movement[1] * 2))
+        if next_cell and next_cell.name == 'empty':
+            box = dungeon_.get(self.position, movement)
+            self.interaction_empty(box)
+            box.move((self.position[0] + movement[1], self.position[1] + movement[0]),
+                     self.get_direction(next_cell))
+            return True
+
+    def interaction_chest(self, obj):
+        pass
 
     def interaction_teleport(self, obj):
         pass

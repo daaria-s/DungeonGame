@@ -38,8 +38,8 @@ class Dungeon(Element):
         self.entities = [self.player, *self.enemies]
 
         self.objects = [
-            Box((1, 8)),
-            Chest((2, 8)),
+            Box((1, 4)),
+            Chest((2, 4)),
         ]
         self.base = []
         empty = Image.open('Sprites/ground/idle/00.png')
@@ -128,7 +128,7 @@ class Dungeon(Element):
         if button not in buttons_keys.keys():
             return
 
-        self.player.interaction(self.get(self.player.position, buttons_keys[button]))
+        self.player.interaction(self, buttons_keys[button])
 
     def enemies_move(self):
 
@@ -167,7 +167,7 @@ class Dungeon(Element):
                 res.append(True)
                 continue
 
-            res.append(enemy.interaction(self.get(enemy.position, diff)))
+            res.append(enemy.interaction(self, diff))
 
         if not any(res):
             config.TURN = 1
