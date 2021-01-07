@@ -80,6 +80,7 @@ class Button(AnimatedElement):
 
     def button_down(self, mouse_pos):
         if self.rect.collidepoint(mouse_pos):
+            music.play_sound('button_down')
             return self.target
 
     def mouse_motion(self, mouse_pos):
@@ -109,11 +110,10 @@ class AntiButton(AnimatedElement):
 
 class Slider(AnimatedElement):
 
-    def __init__(self, name, position, borders, target, function):
+    def __init__(self, name, position, borders, function):
         super().__init__('Sprites/' + name, position)
         self.capture = False
         self.borders = borders
-        self.target = target
         self.function = function
 
     def button_down(self, mouse_pos):
@@ -135,7 +135,7 @@ class Slider(AnimatedElement):
                 x = self.borders[1]
             self.position = (x, self.position[1])
             self.rect = self.animator.next_()[0].get_rect(topleft=self.position)
-            getattr(self.target, self.function)((x - self.borders[0]) / (self.borders[1] - self.borders[0]))
+            getattr(music, self.function)((x - self.borders[0]) / (self.borders[1] - self.borders[0]))
 
 
 class Text(Element):
@@ -161,12 +161,12 @@ class Panel(Element):
         self.active = active
         self.target = target
         self.objects = [
-            Image('game/panel/action_points', (250, yShift + 10)),
-            Text(self.target, 'action_points', (290, yShift + 13), ACTION_POINTS_COLOR),
+            Image('game/panel/health', (50, yShift + 10)),
+            Text(self.target, 'hit_points', (90, yShift + 13), HP_COLOR),
             Image('game/panel/damage', (170, yShift + 10)),
             Text(self.target, 'damage', (210, yShift + 13), DAMAGE_COLOR),
-            Image('game/panel/health', (50, yShift + 10)),
-            Text(self.target, 'hit_points', (90, yShift + 13), HP_COLOR)
+            Image('game/panel/action_points', (290, yShift + 10)),
+            Text(self.target, 'action_points', (330, yShift + 13), ACTION_POINTS_COLOR),
         ]
 
     def show(self, surf):

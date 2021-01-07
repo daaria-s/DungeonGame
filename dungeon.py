@@ -30,12 +30,13 @@ class Dungeon(Element):
                  ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                  ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
 
-        self.player = Player((1, 1))
+        self.player = Player((1, 1), 5, 5, 1, 1, 5)
         self.enemies = [
-          Enemy((5, 2)),
-          Enemy((3, 4)),
-          Enemy((7, 1))
+          Enemy((5, 2), 'blue', 2, 2, 1, 1, 3),
+          Enemy((3, 4), 'blue', 2, 2, 1, 1, 3),
+          Enemy((7, 1), 'blue', 2, 2, 1, 1, 3),
         ]
+
         self.entities = [self.player, *self.enemies]
 
         self.objects = []
