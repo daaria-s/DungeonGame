@@ -1,4 +1,5 @@
 from dungeon import Dungeon
+from music import Music
 from interface import *
 
 
@@ -6,6 +7,8 @@ if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('Magic Dungeon')
     screen = pygame.display.set_mode(SIZE)
+
+    music = Music()
 
     windows = {
         'menu': Window('menu', [Image('menu/background', (0, 0)),
@@ -20,10 +23,10 @@ if __name__ == '__main__':
         'settings': Window('settings', [AntiButton('settings/panel', (97, 152), 'menu'),
                                         Image('settings/music', (131, 212)),
                                         Image('settings/sounds', (131, 330)),
-                                        Image('settings/scrollbar', (309, 212)),
-                                        Image('settings/scrollbar', (309, 330)),
-                                        Slider('settings/slider', (309, 204), (309, 442)),
-                                        Slider('settings/slider', (309, 322), (309, 442))]
+                                        Image('settings/scrollbar', (309, 233)),
+                                        Image('settings/scrollbar', (309, 351)),
+                                        Slider('settings/slider', (309, 225), (309, 442), music, 'set_music_volume'),
+                                        Slider('settings/slider', (309, 343), (309, 442), music, 'set_sounds_volume')]
                            ),
         'load': Window('load', []),
         'exit': Window('exit', []),

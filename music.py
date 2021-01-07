@@ -25,5 +25,5 @@ class Music:
         pygame.mixer.music.set_volume(volume)
 
     def set_sounds_volume(self, volume):
-        for sound in self.sounds:
+        for sound in self.sounds.values():
             sound.set_volume(volume)

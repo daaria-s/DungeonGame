@@ -109,10 +109,12 @@ class AntiButton(AnimatedElement):
 
 class Slider(AnimatedElement):
 
-    def __init__(self, name, position, borders):
+    def __init__(self, name, position, borders, target, function):
         super().__init__('Sprites/' + name, position)
         self.capture = False
         self.borders = borders
+        self.target = target
+        self.function = function
 
     def button_down(self, mouse_pos):
         if self.rect.collidepoint(mouse_pos):
@@ -133,6 +135,7 @@ class Slider(AnimatedElement):
                 x = self.borders[1]
             self.position = (x, self.position[1])
             self.rect = self.animator.next_()[0].get_rect(topleft=self.position)
+            getattr(self.target, self.function)((x - self.borders[0]) / (self.borders[1] - self.borders[0]))
 
 
 class Text(Element):
