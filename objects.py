@@ -9,9 +9,9 @@ class Object:
         self.name = name
         self.animator = Animator('Sprites/' + path, {'static': True})
 
-    def show(self):
-        return self.animator.next_()[0], apply((self.position[0] * TILE,
-                                                self.position[1] * TILE))
+    def show(self, surf):
+        surf.blit(self.animator.next_()[0], apply((self.position[0] * TILE,
+                                                   self.position[1] * TILE)))
 
 
 class Wall(Object):
@@ -36,10 +36,10 @@ class Teleport(Object):
 class Box(Object):
 
     def __init__(self, position):
-        super().__init__('ground', position, 'box')  # поставить правильный спрайт
+        super().__init__('box', position, 'box')
 
 
 class Chest(Object):
 
     def __init__(self, position):
-        super().__init__('Sprites/ground.png', position, 'chest')  # поставить правильный спрайт
+        super().__init__('chest', position, 'chest')

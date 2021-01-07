@@ -94,7 +94,7 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        self.inventory = ['key'] * 10  # fix
+        self.inventory = ['red_key'] * 10  # fix
 
     def interaction_teleport(self, obj):
         pass

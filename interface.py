@@ -3,6 +3,7 @@ import pygame
 from config import *
 import sys
 from config import music
+from functions import *
 
 
 class Window:
@@ -150,18 +151,24 @@ class Slider(AnimatedElement):
 
 class Text(Element):
 
-    def __init__(self, target, attr_name, position, color):
+    def __init__(self, position, color, target=None, attr_name=None, text=None):
         super().__init__()
-        self.target = target
-        self.attr_name = attr_name
         self.position = position
         self.color = color
+        self.target = target
+        self.attr_name = attr_name
+        self.text = text
 
         self.font = pygame.font.Font(None, 40)
 
     def show(self, surf):
-        value = getattr(self.target, self.attr_name)
-        surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color), self.position)
+        if self.target and self.attr_name:
+            value = getattr(self.target, self.attr_name)
+            surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color), self.position)
+        elif self.text:
+            surf.blit(self.font.render(str(self.text), True, self.color), self.position)
+        else:
+            surf.blit(self.font.render('', True, self.color), self.position)
 
 
 class Panel(Element):
@@ -173,11 +180,11 @@ class Panel(Element):
         self.target = target
         self.objects = [
             Image('game/panel/health', (50, yShift + 10)),
-            Text(self.target, 'hit_points', (90, yShift + 13), HP_COLOR),
+            Text((90, yShift + 13), HP_COLOR, self.target, 'hit_points'),
             Image('game/panel/damage', (170, yShift + 10)),
-            Text(self.target, 'damage', (210, yShift + 13), DAMAGE_COLOR),
+            Text((210, yShift + 13), DAMAGE_COLOR, self.target, 'damage'),
             Image('game/panel/action_points', (290, yShift + 10)),
-            Text(self.target, 'action_points', (330, yShift + 13), ACTION_POINTS_COLOR),
+            Text((330, yShift + 13), ACTION_POINTS_COLOR, self.target, 'action_points'),
         ]
 
     def show(self, surf):
@@ -192,3 +199,73 @@ class Panel(Element):
             self.active = True
         else:
             self.active = False
+
+
+class InventorySlot(Element):
+
+    def __init__(self, position, image, description):
+        super().__init__()
+        self.position = position
+        self.base = load_image('Sprites/inventory/slot.png')
+        self.image = image
+        self.rect = self.base.get_rect(topleft=position)
+        self.description = Text(DESCRIPTION_POSITION, DESCRIPTION_COLOR, text=description)
+
+    def show(self, surf):
+        surf.blit(self.base, self.position)
+        if self.image:
+            surf.blit(self.image, self.position)
+
+    def show_description(self, surf):
+        self.description.show(surf)
+
+    def button_down(self, mouse_pos):
+        if self.rect.collidepoint(mouse_pos):
+            return True
+
+
+class Inventory(Element):
+
+    def __init__(self, target):
+        super().__init__()
+        self.base = AntiButton('game/inventory', (97, 97), 'game')
+
+        counter = 0
+        # EDIT
+        # add keys
+        self.image_keys = {
+            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors')
+        }
+        self.slots = []
+        for i in range(4):
+            self.slots.append([])
+            for k in range(5):
+                if counter < len(target.inventory):
+                    params = self.image_keys[target.inventory[counter]]
+                else:
+                    params = (None, '')
+                self.slots[i].append(InventorySlot((100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
+                                                    100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
+                                                   *params))
+                counter += 1
+
+        self.active_slot = None
+
+    def show(self, surf):
+        self.base.show(surf)
+        for i in range(len(self.slots)):
+            for k in range(len(self.slots[i])):
+                self.slots[i][k].show(surf)
+        if self.active_slot:
+            self.active_slot.show_description(surf)
+
+    def button_down(self, mouse_pos):
+        res = self.base.button_down(mouse_pos)
+        if res:
+            return res
+        for i in range(len(self.slots)):
+            for k in range(len(self.slots[i])):
+                if self.slots[i][k].button_down(mouse_pos):
+                    self.active_slot = self.slots[i][k]
+                    return
+        self.active_slot = None
