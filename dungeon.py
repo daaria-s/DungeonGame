@@ -29,7 +29,7 @@ class Room:
 
     def structure(self):
         map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-               ['W', 'P', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -38,9 +38,11 @@ class Room:
                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
-        if self.num != 1:
+        if self.enter:
             map[self.enter[0]][self.enter[1]] = self.num - 1
+
         map[self.exit_[0]][self.exit_[1]] = self.num + 1
+
 
         return map
 
@@ -50,6 +52,7 @@ class Dungeon(Element):
     def __init__(self, user_name=''):
         super().__init__()
 
+        self.first = True
         self.rooms = {}
         self.enemies = []
         self.objects = []
@@ -62,7 +65,6 @@ class Dungeon(Element):
         self.change_room(1)
 
     def change_room(self, num):
-        print(self.rooms, num)
         self.enemies = []
         self.objects = []
         self.base = []
@@ -71,18 +73,17 @@ class Dungeon(Element):
             self.generate_level(num)
         else:
             self.enemies = self.rooms[num].enemies
-            self.objects = self.rooms[num].enemies
+            self.objects = self.rooms[num].objects
 
-        if self.current_room != 1:
-            if num > self.current_room:
-                self.player.position = self.rooms[num].enter[1], \
-                                   self.rooms[num].enter[0]
-            else:
-                self.player.position = self.rooms[num].exit_[1], \
-                                   self.rooms[num].exit_[0]
-
-        else:
+        if self.first:
             self.player.position = (1, 1)
+            self.first = False
+        elif num > self.current_room:
+            self.player.position = self.rooms[num].enter[1], \
+                                   self.rooms[num].enter[0]
+        else:
+            self.player.position = self.rooms[num].exit_[1], \
+                                   self.rooms[num].exit_[0]
 
         self.current_room = num
         self.entities = [self.player, *self.enemies]
@@ -118,7 +119,7 @@ class Dungeon(Element):
         closed_cells = [self.player.position]
         enter = None
 
-        if self.current_room != 1:
+        if num != 1:
             enter = self.rooms[num - 1].enter_from_exit()
 
         for i in range(random.randint(3, 5)):
@@ -139,7 +140,7 @@ class Dungeon(Element):
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
-                                             enter)
+                               enter=enter)
 
     def load_map(self, user_name):
         pass
@@ -206,7 +207,6 @@ class Dungeon(Element):
                     enemy_pos[0] + diff[0],
                     enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
                 self.get(enemy_pos, diff), (Player, Empty)):
-
                 diff = options[random.randint(0, len(options) - 1)]
 
             blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
