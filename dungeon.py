@@ -12,19 +12,15 @@ class UnknownMapSymbol(Exception):
 
 
 class Room:
-    def __init__(self, exit_, enemies, num_of_room, enter=None):
+    def __init__(self, exit_, enemies, objects, num_of_room, enter=None):
         self.num = num_of_room
         if num_of_room == 1:
             self.first_room = True
         self.enter = enter
-
         self.exit_ = exit_
 
-        self.enemies = [enemies]
-
-    def generation(self):
-        if self.first_room:
-            pass
+        self.enemies = enemies
+        self.objects = objects
 
     def enter_from_exit(self):
         if self.exit_[0] == 9:
@@ -45,31 +41,51 @@ class Room:
         if self.num != 1:
             map[self.enter[0]][self.enter[1]] = self.num - 1
         map[self.exit_[0]][self.exit_[1]] = self.num + 1
+
         return map
 
 
 class Dungeon(Element):
 
-    def __init__(self, user_name=None):
+    def __init__(self, user_name=''):
         super().__init__()
 
-        self.current_room = 1
         self.rooms = {}
-        self.player = Player((1, 1), 5, 5, 1, 1, 5, 3)
         self.enemies = []
         self.objects = []
-
-        self.generate_level(self.current_room)
-        self.entities = [self.player, *self.enemies]
-
         self.base = []
-        self.load_room(self.current_room)
+        self.entities = []
 
-    def next_room(self):
-        self.current_room += 1
-        if self.current_room not in self.rooms.keys():
-            self.generate_level(self.current_room)
-        self.player.position = 1, 1
+        self.player = Player((1, 1), 10, 10, 1, 1, 5, 3)
+        self.current_room = 1
+
+        self.change_room(1)
+
+    def change_room(self, num):
+        print(self.rooms, num)
+        self.enemies = []
+        self.objects = []
+        self.base = []
+
+        if num not in self.rooms.keys():
+            self.generate_level(num)
+        else:
+            self.enemies = self.rooms[num].enemies
+            self.objects = self.rooms[num].enemies
+
+        if self.current_room != 1:
+            if num > self.current_room:
+                self.player.position = self.rooms[num].enter[1], \
+                                   self.rooms[num].enter[0]
+            else:
+                self.player.position = self.rooms[num].exit_[1], \
+                                   self.rooms[num].exit_[0]
+
+        else:
+            self.player.position = (1, 1)
+
+        self.current_room = num
+        self.entities = [self.player, *self.enemies]
         self.load_room(self.current_room)
 
     def load_room(self, num_of_room):
@@ -98,31 +114,32 @@ class Dungeon(Element):
             Button('game/panel/save', (500, 10), 'save')
         ]
 
-    def generate_level(self, num_of_level):
-
-        closed_cells = [(1, 1)]
+    def generate_level(self, num):
+        closed_cells = [self.player.position]
         enter = None
+
         if self.current_room != 1:
-            enter = self.rooms[self.current_room - 1].enter_from_exit()
+            enter = self.rooms[num - 1].enter_from_exit()
 
         for i in range(random.randint(3, 5)):
-            x, y = random.randint(1, 9), random.randint(1, 8)
+            x, y = random.randint(2, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
-                x, y = random.randint(1, 9), random.randint(1, 8)
+                x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
                 Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 3, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
-            x, y = random.randint(2, 9), random.randint(2, 8)
+            x, y = random.randint(2, 8), random.randint(2, 7)
             while (x, y) in closed_cells:
-                x, y = random.randint(2, 9), random.randint(2, 8)
+                x, y = random.randint(2, 8), random.randint(2, 7)
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
-        exit_ = random.choice([(random.randint(4, 8), 11), (9, random.randint(4, 9))])
+        exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
-        self.rooms[self.current_room] = Room(exit_, self.enemies, self.current_room, enter)
+        self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
+                                             enter)
 
     def load_map(self, user_name):
         pass
@@ -137,12 +154,6 @@ class Dungeon(Element):
 
     def player_move(self, button):
 
-        if self.player.interaction_teleport(self):
-            print('next')
-            self.current_room += 1
-            self.generate_level(2)
-            self.load_room(2)
-
         if any([i.animator.animation not in ['idle', 'die'] for i in self.enemies]):
             return
 
@@ -155,13 +166,13 @@ class Dungeon(Element):
 
         if self.player.animator.animation != 'idle':
             return
+
+        self.player.interaction_teleport(self)
+
         if button not in buttons_keys.keys():
             return
 
         self.player.interaction(self, buttons_keys[button])
-
-    def change_room(self):
-        pass
 
     def enemies_move(self):
 

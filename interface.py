@@ -50,6 +50,7 @@ class Window:
             if self.first_load:
                 music.play_music(self.music_name)
                 self.first_load = False
+
         self.first_load = True
         return self.get_event(events)
 
