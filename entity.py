@@ -122,7 +122,10 @@ class Player(Entity):
             return True
 
     def interaction_teleport(self, obj):
-        pass
+        print(obj.rooms[obj.current_room].exit_)
+        print(self.position)
+        if (self.position[0], self.position[1]) == obj.rooms[obj.current_room].exit_:
+            return True
 
     def die(self):
         super().die()

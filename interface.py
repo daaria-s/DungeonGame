@@ -6,6 +6,9 @@ from config import music
 from functions import *
 
 
+all_sprites = pygame.sprite.Group()
+
+
 class Window:
 
     def __init__(self, name, objects, music_name='main', run_music=False):
@@ -15,19 +18,11 @@ class Window:
         self.run_music = run_music
         self.first_load = True
 
-    def update(self, surf, events):
-        if self.first_load:
-            if self.run_music:
-                music.play_music(self.music_name)
-            self.first_load = False
-
-        self.first_load = True
-        if self.name == 'exit':
-            pygame.quit()
-            sys.exit()
+    def get_event(self, events):
         for event in events:
             if event.type == pygame.QUIT:
-                return 'exit'
+                pygame.quit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 for obj in self.objects:
                     obj.key_down(event.key)
@@ -43,15 +38,26 @@ class Window:
                 for obj in self.objects:
                     obj.mouse_motion(event.pos)
 
-        for obj in self.objects:
-            obj.show(surf)
         self.first_load = False
         return self.name
 
+    def update(self, surf, events):
 
-class Element:
+        for obj in self.objects:
+            obj.show(surf)
+
+        if self.run_music:
+            if self.first_load:
+                music.play_music(self.music_name)
+                self.first_load = False
+        self.first_load = True
+        return self.get_event(events)
+
+
+class Element(pygame.sprite.Sprite):
 
     def __init__(self):
+        super().__init__()
         pass
 
     def button_down(self, mouse_pos):
