@@ -5,7 +5,6 @@ import sys
 from config import music
 from functions import *
 
-
 all_sprites = pygame.sprite.Group()
 
 
@@ -16,7 +15,6 @@ class Window:
         self.objects = objects
         self.music_name = music_name
         self.run_music = run_music
-        self.first_load = True
 
     def get_event(self, events):
         for event in events:
@@ -38,7 +36,6 @@ class Window:
                 for obj in self.objects:
                     obj.mouse_motion(event.pos)
 
-        self.first_load = False
         return self.name
 
     def update(self, surf, events):
@@ -46,12 +43,9 @@ class Window:
         for obj in self.objects:
             obj.show(surf)
 
-        if self.run_music:
-            if self.first_load:
-                music.play_music(self.music_name)
-                self.first_load = False
+        if self.run_music and self.music_name != music.now_play:
+            music.play_music(self.music_name)
 
-        self.first_load = True
         return self.get_event(events)
 
 
@@ -153,7 +147,8 @@ class Slider(AnimatedElement):
                 x = self.borders[1]
             self.position = (x, self.position[1])
             self.rect = self.animator.next_()[0].get_rect(topleft=self.position)
-            getattr(music, self.function)((x - self.borders[0]) / (self.borders[1] - self.borders[0]))
+            getattr(music, self.function)(
+                (x - self.borders[0]) / (self.borders[1] - self.borders[0]))
 
 
 class Text(Element):
@@ -171,7 +166,8 @@ class Text(Element):
     def show(self, surf):
         if self.target and self.attr_name:
             value = getattr(self.target, self.attr_name)
-            surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color), self.position)
+            surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color),
+                      self.position)
         elif self.text:
             surf.blit(self.font.render(str(self.text), True, self.color), self.position)
         else:
@@ -238,7 +234,9 @@ class Inventory(Element):
         self.base = AntiButton('game/inventory', (97, 97), 'game')
 
         self.image_keys = {
-            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors')
+            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors'),
+
+            'health': (load_image('Sprites/inventory/green_key.png'), 'This key open red doors')
         }
 
         self.target = target
@@ -255,9 +253,10 @@ class Inventory(Element):
                     params = self.image_keys[self.target.inventory[counter]]
                 else:
                     params = (None, '')
-                self.slots[i].append(InventorySlot((100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
-                                                    100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
-                                                   *params))
+                self.slots[i].append(InventorySlot(
+                    (100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
+                     100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
+                    *params))
                 counter += 1
 
         self.active_slot = None

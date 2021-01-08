@@ -14,8 +14,6 @@ class UnknownMapSymbol(Exception):
 class Room:
     def __init__(self, exit_, enemies, objects, num_of_room, enter=None):
         self.num = num_of_room
-        if num_of_room == 1:
-            self.first_room = True
         self.enter = enter
         self.exit_ = exit_
 
@@ -43,7 +41,6 @@ class Room:
 
         map[self.exit_[0]][self.exit_[1]] = self.num + 1
 
-
         return map
 
 
@@ -59,7 +56,7 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 5, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
 
         self.change_room(1)
@@ -127,7 +124,7 @@ class Dungeon(Element):
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 3, 2))
+                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 2, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
@@ -137,15 +134,21 @@ class Dungeon(Element):
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
+        for i in range(random.randint(0, 2)):
+            x, y = random.randint(1, 9), random.randint(2, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(1, 9), random.randint(2, 8)
+            self.objects.append(Chest((x, y), 'potion'))
+            closed_cells.append((x, y))
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
                                enter=enter)
 
-    def load_map(self, user_name):
+    def load(self, user_name):
         pass
 
-    def save_map(self):
+    def save(self):
         print('save')
 
     def get(self, coords, diff=(0, 0)):

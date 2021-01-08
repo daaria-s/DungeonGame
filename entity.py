@@ -4,6 +4,7 @@ from config import *
 from animator import Animator
 from functions import *
 import random
+from objects import Key, Potion
 
 
 class Entity:
@@ -15,12 +16,13 @@ class Entity:
         self.position = position
         self.name = name
 
-        self.action_points = [max_action_points, max_action_points]
+        self.action_points = [action_points, max_action_points]
         self.damage = [min_damage, max_damage]
         self.hit_points = [hit_points, max_hit_points]
 
         self.alive = True
         self.animator = Animator('Sprites/' + path)
+        self.inventory = []
 
     def show(self, surf):
         image, shift = self.animator.next_()
@@ -34,7 +36,8 @@ class Entity:
             (0, 1): 'up',
             (0, -1): 'down'
         }
-        return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
+        return movement_keys[
+            (self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
     def interaction(self, dungeon_, movement):
         target = dungeon_.get(self.position, movement)
@@ -82,6 +85,10 @@ class Entity:
 
     def get_hit(self, damage):
         self.hit_points[0] -= random.randint(damage[0], damage[1])
+        if self.inventory:
+            if 'health' in self.inventory:
+                self.hit_points[0] += 1
+                self.inventory.remove('health')
         if self.hit_points[0] <= 0:
             self.die()
 
@@ -100,7 +107,15 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        self.inventory = ['red_key'] * 10  # EDIT: fix
+        self.inventory = []
+
+    def new_inventory(self, object):
+        print(self.hit_points)
+        print(object)
+        if object == 'health' and self.hit_points[0] < self.hit_points[1]:
+            self.hit_points[0] += 1
+        else:
+            self.inventory.append(object)
 
     def interaction_box(self, dungeon_, movement):
         next_cell = dungeon_.get(self.position, (movement[0] * 2, movement[1] * 2))
@@ -113,18 +128,20 @@ class Player(Entity):
 
     def interaction_chest(self, obj):
         self.animator.start('attack_' + self.get_direction(obj))
+        print(obj)
         res = obj.touch()
         if res == '__empty__':
             self.interaction_empty(obj)
             return True
         elif res:
-            self.inventory.append(res)
+            self.new_inventory(res)
             return True
 
     def interaction_teleport(self, obj):
         if (self.position[1], self.position[0]) == obj.rooms[obj.current_room].exit_:
             obj.change_room(obj.current_room + 1)
-        elif obj.current_room != 1 and (self.position[1], self.position[0]) == obj.rooms[obj.current_room].enter:
+        elif obj.current_room != 1 and (self.position[1], self.position[0]) == obj.rooms[
+            obj.current_room].enter:
             obj.change_room(obj.current_room - 1)
 
     def die(self):

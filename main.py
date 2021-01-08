@@ -38,7 +38,7 @@ if __name__ == '__main__':
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game', run_music=True),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
-        'save': Window('save', [])
+        'save': Window('save', [dungeon])
 
     }
 

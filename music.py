@@ -15,11 +15,13 @@ class Music:
             'main': 'Sounds/menu_music.mp3',
             'game': 'Sounds/melody.mp3',
         }
+        self.now_play = ''
 
     def play_sound(self, name):
         self.sounds[name].play()
 
     def play_music(self, name):
+        self.now_play = name
         pygame.mixer.music.load(self.musics[name])
         pygame.mixer.music.play()
 
