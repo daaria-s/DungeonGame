@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
     # EDIT
     # fix bug with new play music when you close settings panel
+    # fixed
     windows = {
         'menu': Window('menu', [
             Image('menu/background', (0, 0)),
@@ -34,11 +35,23 @@ if __name__ == '__main__':
             Slider('settings/slider', (442, 343), (309, 442), 'set_sounds_volume'),
         ]
                            ),
-        'load': Window('load', []),
+        'load': Window('load', [
+            AntiButton('load/panel', (97, 152), 'menu'),
+            Image('load/title', (211, 172)),
+            TextBox('load/cell', (119, 263), ''),
+            Button('load/load', (139, 350), 'game', {'cycle': True}),
+            # Button('load/cancel', (319, 330), 'game', {'cycle': True}),
+        ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game', run_music=True),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
-        'save': Window('save', [dungeon])
+        'save': Window('save', [
+            AntiButton('save/panel', (97, 152), 'game'),
+            Image('save/title', (211, 172)),
+            InputBox('save/input_box', (119, 243), ''),
+            Button('save/save', (119, 330), 'game', {'cycle': True}),
+            Button('save/cancel', (319, 330), 'game', {'cycle': True}),
+        ])
 
     }
 

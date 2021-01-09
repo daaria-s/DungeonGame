@@ -26,22 +26,22 @@ class Room:
         return self.exit_[0], 0
 
     def structure(self):
-        map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+        map_ = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
         if self.enter:
-            map[self.enter[0]][self.enter[1]] = self.num - 1
+            map_[self.enter[0]][self.enter[1]] = self.num - 1
 
-        map[self.exit_[0]][self.exit_[1]] = self.num + 1
+        map_[self.exit_[0]][self.exit_[1]] = self.num + 1
 
-        return map
+        return map_
 
 
 class Dungeon(Element):
@@ -56,7 +56,7 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 7, 7, 1, 1, 3, 3)
         self.current_room = 1
 
         self.change_room(1)
@@ -134,13 +134,23 @@ class Dungeon(Element):
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
-        for i in range(random.randint(0, 2)):
+        a, b = (0, 1) if num < 5 else (1, 2)
+        for i in range(random.randint(a, b)):
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
             self.objects.append(Chest((x, y), 'potion'))
             closed_cells.append((x, y))
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
+
+        door_color = random.choice(['red', 'blue'])
+
+        x, y = random.randint(1, 9), random.randint(1, 8)
+        while (x, y) in closed_cells:
+            x, y = random.randint(2, 9), random.randint(2, 8)
+        self.objects.append(Chest((x, y), 'key', door_color))
+
+        self.objects.append(Door((exit_[1], exit_[0]), door_color))
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
                                enter=enter)
@@ -210,6 +220,8 @@ class Dungeon(Element):
                     enemy_pos[0] + diff[0],
                     enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
                 self.get(enemy_pos, diff), (Player, Empty)):
+                # and isinstance(
+                # self.get(enemy_pos, diff), Enemy) and self.get(enemy_pos, diff).alive
                 diff = options[random.randint(0, len(options) - 1)]
 
             blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))

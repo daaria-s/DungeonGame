@@ -46,11 +46,11 @@ class Box(Object):
 
 class Chest(Object):
 
-    def __init__(self, position, object):
+    def __init__(self, position, object, color=None):
         super().__init__('chest_02', position, 'chest')
         if object == 'key':
-            self.inside = Key(self.position, 'red')
-        else:
+            self.inside = Key(self.position, color)
+        elif object == 'potion':
             self.inside = Potion(self.position, 'green')
         self.stage = 0
 
@@ -77,27 +77,20 @@ class Chest(Object):
 
 class Door(Object):
 
-    def __init__(self, position):
-        super().__init__('doors', position, 'chest')
+    def __init__(self, position, color):
+        super().__init__('doors/' + color, position, 'door')
+        self.color = color
         self.inside = None
         self.stage = 0
 
     def touch(self):
         if self.stage == 0:
             self.animator.start('die')
-            self.inside.animator.start('appearance')
             self.stage += 1
-        elif self.stage == 1:
-            self.inside.animator.start('die')
-            self.stage += 1
-            return self.inside.name
         else:
             return '__empty__'
 
     def show(self, surf):
-        image, shift = self.inside.animator.next_()
-        surf.blit(image, apply((self.position[0] * TILE + shift[0],
-                                self.position[1] * TILE + shift[1])))
         image, shift = self.animator.next_()
         surf.blit(image, apply((self.position[0] * TILE + shift[0],
                                 self.position[1] * TILE + shift[1])))

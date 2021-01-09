@@ -51,7 +51,8 @@ class Entity:
             'wall': [lambda: False, []],
             'box': [self.interaction_box, [dungeon_, movement]],
             'chest': [self.interaction_chest, [target]],
-            'teleport': [self.interaction_teleport, [target]]
+            'teleport': [self.interaction_teleport, [target]],
+            'door': [self.interaction_door, [target]]
         }
         if keys[target.name][0](*keys[target.name][1]):
             self.action_points[0] -= 1
@@ -81,6 +82,9 @@ class Entity:
         pass
 
     def interaction_teleport(self, obj):
+        pass
+
+    def interaction_door(self, obj):
         pass
 
     def get_hit(self, damage):
@@ -128,7 +132,6 @@ class Player(Entity):
 
     def interaction_chest(self, obj):
         self.animator.start('attack_' + self.get_direction(obj))
-        print(obj)
         res = obj.touch()
         if res == '__empty__':
             self.interaction_empty(obj)
@@ -136,6 +139,15 @@ class Player(Entity):
         elif res:
             self.new_inventory(res)
             return True
+
+    def interaction_door(self, obj):
+        self.animator.start('attack_' + self.get_direction(obj))
+        res = obj.touch()
+        if res == '__empty__':
+            self.interaction_empty(obj)
+            return True
+        if obj.color + '_key' in self.inventory:
+            self.inventory.remove(obj.color + '_key')
 
     def interaction_teleport(self, obj):
         if (self.position[1], self.position[0]) == obj.rooms[obj.current_room].exit_:

@@ -234,9 +234,13 @@ class Inventory(Element):
         self.base = AntiButton('game/inventory', (97, 97), 'game')
 
         self.image_keys = {
-            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors'),
+            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key opens red doors'),
 
-            'health': (load_image('Sprites/inventory/green_key.png'), 'This key open red doors')
+            'blue_key': (
+            load_image('Sprites/inventory/blue_key.png'), 'This key opens blue doors'),
+
+            'health': (
+            load_image('Sprites/inventory/green_key.png'), 'This potion gives +1 health')
         }
 
         self.target = target
@@ -280,3 +284,30 @@ class Inventory(Element):
                     self.active_slot = self.slots[i][k]
                     return
         self.active_slot = None
+
+
+class TextBox(AnimatedElement):
+    def __init__(self, name, position, function):
+        super().__init__('Sprites/' + name, position)
+        self.input_ = Text((position[0] + 15, position[1] + 15), DESCRIPTION_COLOR, text='')
+        self.input_.font = pygame.font.Font('C:\Windows\Fonts\Arial.ttf', 30)
+
+    def show(self, surf):
+        super().show(surf)
+        self.input_.show(surf)
+
+
+class InputBox(TextBox):
+    def __init__(self, name, position, function):
+        super().__init__(name, position, function)
+
+    def key_down(self, key):
+        if 48 <= key <= 57 or 97 <= key <= 122:
+            if len(self.input_.text) < 14:
+                self.input_.text += str(chr(key))
+        elif key == 8:
+            self.input_.text = self.input_.text[:-1]
+
+    def show(self, surf):
+        super().show(surf)
+        self.input_.show(surf)
