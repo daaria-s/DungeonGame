@@ -1,5 +1,5 @@
-from dungeon import Dungeon
 from interface import *
+from objects import *
 
 
 if __name__ == '__main__':
@@ -43,6 +43,7 @@ if __name__ == '__main__':
             # Button('load/cancel', (319, 330), 'game', {'cycle': True}),
         ]),
         'exit': Window('exit', []),
+
         'game': Window('game', [dungeon], music_name='game', run_music=True),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
         'save': Window('save', [

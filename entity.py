@@ -114,8 +114,6 @@ class Player(Entity):
         self.inventory = []
 
     def new_inventory(self, object):
-        print(self.hit_points)
-        print(object)
         if object == 'health' and self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
         else:
@@ -156,7 +154,12 @@ class Player(Entity):
             obj.current_room].enter:
             obj.change_room(obj.current_room - 1)
 
+    # def get_hit(self, damage):
+    #     super().get_hit(damage)
+    #     music.play_sound('fail')
+
     def die(self):
+        # music.play_music('defeat')
         super().die()
         config.LOSE = True
 

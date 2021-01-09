@@ -4,7 +4,6 @@ import config
 from functions import *
 import random
 from PIL import Image
-from interface import Panel, Button, Element
 
 
 class UnknownMapSymbol(Exception):
@@ -49,6 +48,7 @@ class Dungeon(Element):
     def __init__(self, user_name=''):
         super().__init__()
 
+        self.unused_keys = []
         self.first = True
         self.rooms = {}
         self.enemies = []
@@ -119,12 +119,13 @@ class Dungeon(Element):
         if num != 1:
             enter = self.rooms[num - 1].enter_from_exit()
 
-        for i in range(random.randint(3, 5)):
+        num1, num2 = (2, 4) if num < 4 else (3, 5)
+        for i in range(random.randint(num1, num2)):
             x, y = random.randint(2, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 2, 2))
+                Enemy((x, y), random.choice(['green', 'blue', 'purple', 'red']), 2, 2, 1, 1, 2, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
@@ -134,7 +135,7 @@ class Dungeon(Element):
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
-        a, b = (0, 1) if num < 5 else (1, 2)
+        a, b = (0, 2)
         for i in range(random.randint(a, b)):
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
@@ -143,14 +144,18 @@ class Dungeon(Element):
             closed_cells.append((x, y))
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
-        door_color = random.choice(['red', 'blue'])
+        if not random.randint(0, 2) and len(self.unused_keys) < 6:
+            door_color = random.choice(['red', 'blue'])
 
-        x, y = random.randint(1, 9), random.randint(1, 8)
-        while (x, y) in closed_cells:
-            x, y = random.randint(2, 9), random.randint(2, 8)
-        self.objects.append(Chest((x, y), 'key', door_color))
+            x, y = random.randint(1, 9), random.randint(1, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(2, 9), random.randint(2, 8)
+            self.objects.append(Chest((x, y), 'key', door_color))
+            self.unused_keys.append(door_color)
 
-        self.objects.append(Door((exit_[1], exit_[0]), door_color))
+        if not random.randint(0, 2) and self.unused_keys:
+            self.objects.append(Door((exit_[1], exit_[0]), self.unused_keys.pop(
+                random.randint(0, len(self.unused_keys) - 1))))
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
                                enter=enter)

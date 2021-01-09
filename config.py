@@ -20,3 +20,5 @@ PANEL_COLOR = (64, 64, 64)
 DESCRIPTION_COLOR = (192, 192, 192)
 
 music = Music()
+
+USER_NAME = ''
