@@ -222,13 +222,13 @@ class Inventory(Element):
             for k in range(5):
                 if counter < len(self.target.inventory):
                     params = self.image_keys[self.target.inventory[counter]]
+                    counter += 1
                 else:
                     params = (None, '')
                 self.slots[i].append(InventorySlot(
                     (100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
                      100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
                     *params))
-                counter += 1
 
         self.active_slot = None
 

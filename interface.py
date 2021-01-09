@@ -39,8 +39,6 @@ class Window:
     def update(self, surf, events):
 
         if self.run_music and self.music_name != music.now_play:
-            if self.name == 'game':
-                self.objects = [Dungeon()]
             music.play_music(self.music_name)
 
         for obj in self.objects:

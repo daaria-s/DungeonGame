@@ -4,6 +4,7 @@ import config
 from functions import *
 import random
 from PIL import Image
+import sqlite3
 
 
 class UnknownMapSymbol(Exception):
@@ -162,9 +163,6 @@ class Dungeon(Element):
 
     def load(self, user_name):
         pass
-
-    def save(self):
-        print('save')
 
     def get(self, coords, diff=(0, 0)):
         for entity in [*self.entities, *self.objects, *self.base]:

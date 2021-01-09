@@ -114,6 +114,7 @@ class Player(Entity):
         self.inventory = []
 
     def new_inventory(self, object):
+        print(object)
         if object == 'health' and self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
         else:
