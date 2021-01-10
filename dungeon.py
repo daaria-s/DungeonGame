@@ -12,6 +12,7 @@ class UnknownMapSymbol(Exception):
 
 
 class Dungeon(Element):
+    """Класс подземелья"""
 
     def __init__(self):
         super().__init__()
@@ -107,6 +108,7 @@ class Dungeon(Element):
         pass
 
     def get(self, coords, diff=(0, 0)):
+        """Возвращает объект по координатам"""
         for entity in [*self.entities, *self.objects, *self.base]:
             if entity.position == (coords[0] + diff[1], coords[1] + diff[0]):
                 return entity

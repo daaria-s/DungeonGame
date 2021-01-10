@@ -11,6 +11,7 @@ if __name__ == '__main__':
 
     # EDIT
     # fix bug with new play music when you close settings panel
+    # Создаем словарь вида {имя окна: класс окна}
     windows = {
         'menu': Window('menu', [
             Image('menu/background', (0, 0)),
@@ -42,9 +43,10 @@ if __name__ == '__main__':
 
     }
 
-    current_window = windows['menu']
+    current_window = windows['menu']  # устанавливает текущее окно
     clock = pygame.time.Clock()
-    while True:
+    while True:  # бесконечный игровой цикл
+        # обновляем окно и делаем отрисовку в зависимости от произошедших событий
         current_window = windows[current_window.update(screen, pygame.event.get())]
-        pygame.display.flip()
-        clock.tick(FPS)
+        pygame.display.flip()  # обновление экрана
+        clock.tick(FPS)  # задержка
