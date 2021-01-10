@@ -10,12 +10,19 @@ all_sprites = pygame.sprite.Group()
 
 class Window:
 
-    def __init__(self, name, objects, music_name='main', importance=False):
+    def __init__(self, name, objects, music_name='main'):
         self.name = name
         self.objects = objects
         self.music_name = music_name
-        self.importance = importance
+        self.important_windows = ['menu', 'game', 'exit']
         self.first_load = True
+
+        self.fade_in_counter = 0
+        self.fade_out_counter = 60
+        self.fade_target = None
+
+        self.fader = pygame.Surface(SIZE)
+        self.fader.fill(BLACK)
 
     def get_event(self, events):
         for event in events:
@@ -29,9 +36,11 @@ class Window:
                 for obj in self.objects:
                     target = obj.button_down(event.pos)
                     if target:
-                        if target in ['menu', 'game']:
-                            self.first_load = True
-                        return target
+                        if target in self.important_windows and self.name in self.important_windows:
+                            self.fade_target = target
+                            self.fade_out_counter = 0
+                        else:
+                            return target
             elif event.type == pygame.MOUSEBUTTONUP:
                 for obj in self.objects:
                     obj.button_up(event.pos)
@@ -41,15 +50,34 @@ class Window:
 
         return self.name
 
+    def fade(self, surf, value):
+        self.fader.set_alpha(int(value * 4.25))
+        surf.blit(self.fader, (0, 0))
+
     def update(self, surf, events):
         if self.first_load:
-            if self.importance:
+            # EDIT
+            # fix buttons hover at first load
+            if self.name in self.important_windows:
                 music.play_music(self.music_name)
+                self.fade_in_counter = 60
             self.first_load = False
 
         for obj in self.objects:
             obj.show(surf)
 
+        if self.fade_in_counter != 0:
+            self.fade(surf, self.fade_in_counter)
+            self.fade_in_counter -= 1
+        elif self.fade_out_counter != 60:
+            self.fade(surf, self.fade_out_counter)
+            self.fade_out_counter += 1
+            if self.fade_out_counter == 60:
+                self.first_load = True
+                return self.fade_target
+
+        if self.fade_in_counter != 0 or self.fade_out_counter != 60:
+            return self.name
         return self.get_event(events)
 
 

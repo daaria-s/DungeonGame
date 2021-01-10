@@ -9,8 +9,6 @@ if __name__ == '__main__':
 
     dungeon = Dungeon()
 
-    # EDIT
-    # fix bug with new play music when you close settings panel
     windows = {
         'menu': Window('menu', [
             Image('menu/background', (0, 0)),
@@ -21,8 +19,7 @@ if __name__ == '__main__':
             Button('menu/exit', (192, 490), 'exit', {'cycle': True}),
             Image('menu/fire', (40, 277), {'speed': 6}),
             Image('menu/fire', (407, 277), {'speed': 6}),
-        ],
-                       importance=True),
+        ]),
         'settings': Window('settings', [
             AntiButton('settings/panel', (97, 152), 'menu'),
             Image('settings/music', (131, 212)),
@@ -35,7 +32,7 @@ if __name__ == '__main__':
                            ),
         'load': Window('load', []),
         'exit': Window('exit', []),
-        'game': Window('game', [dungeon], music_name='game', importance=True),
+        'game': Window('game', [dungeon], music_name='game'),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
         'save': Window('save', [])
 
