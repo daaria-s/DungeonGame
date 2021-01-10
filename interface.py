@@ -2,7 +2,6 @@ from animator import Animator
 import pygame
 from config import *
 import sys
-from config import music
 from functions import *
 
 
@@ -11,11 +10,11 @@ all_sprites = pygame.sprite.Group()
 
 class Window:
 
-    def __init__(self, name, objects, music_name='main', run_music=False):
+    def __init__(self, name, objects, music_name='main', importance=False):
         self.name = name
         self.objects = objects
         self.music_name = music_name
-        self.run_music = run_music
+        self.importance = importance
         self.first_load = True
 
     def get_event(self, events):
@@ -30,6 +29,8 @@ class Window:
                 for obj in self.objects:
                     target = obj.button_down(event.pos)
                     if target:
+                        if target in ['menu', 'game']:
+                            self.first_load = True
                         return target
             elif event.type == pygame.MOUSEBUTTONUP:
                 for obj in self.objects:
@@ -38,20 +39,17 @@ class Window:
                 for obj in self.objects:
                     obj.mouse_motion(event.pos)
 
-        self.first_load = False
         return self.name
 
     def update(self, surf, events):
+        if self.first_load:
+            if self.importance:
+                music.play_music(self.music_name)
+            self.first_load = False
 
         for obj in self.objects:
             obj.show(surf)
 
-        if self.run_music:
-            if self.first_load:
-                music.play_music(self.music_name)
-                self.first_load = False
-
-        self.first_load = True
         return self.get_event(events)
 
 

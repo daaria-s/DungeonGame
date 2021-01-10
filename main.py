@@ -20,10 +20,9 @@ if __name__ == '__main__':
             Button('menu/settings', (192, 390), 'settings', {'cycle': True}),
             Button('menu/exit', (192, 490), 'exit', {'cycle': True}),
             Image('menu/fire', (40, 277), {'speed': 6}),
-            Image('menu/fire', (407, 277), {'speed': 6})
+            Image('menu/fire', (407, 277), {'speed': 6}),
         ],
-                       run_music=True
-                       ),
+                       importance=True),
         'settings': Window('settings', [
             AntiButton('settings/panel', (97, 152), 'menu'),
             Image('settings/music', (131, 212)),
@@ -36,7 +35,7 @@ if __name__ == '__main__':
                            ),
         'load': Window('load', []),
         'exit': Window('exit', []),
-        'game': Window('game', [dungeon], music_name='game', run_music=True),
+        'game': Window('game', [dungeon], music_name='game', importance=True),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
         'save': Window('save', [])
 
