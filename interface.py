@@ -7,13 +7,14 @@ from functions import *
 
 
 class Window:
+    """Класс окна"""
 
     def __init__(self, name, objects, music_name='main', run_music=False):
-        self.name = name
-        self.objects = objects
-        self.music_name = music_name
-        self.run_music = run_music
-        self.first_load = True
+        self.name = name  # имя окна
+        self.objects = objects  # объекты в этом окне
+        self.music_name = music_name  # имя музыки, которая должна проигрываться в этом окне
+        self.run_music = run_music  # нужно ли запускать музыку
+        self.first_load = True  # загружается ли окно в первый раз
 
     def update(self, surf, events):
         if self.first_load:
@@ -50,128 +51,152 @@ class Window:
 
 
 class Element:
+    """Абстрактный класс элемента в окне"""
 
     def __init__(self):
         pass
 
     def button_down(self, mouse_pos):
+        """Функция нажатия мыши"""
         pass
 
     def button_up(self, mouse_pos):
+        """Функция отпускания мыши"""
         pass
 
     def mouse_motion(self, mouse_pos):
+        """Функция движения мыши"""
         pass
 
     def key_down(self, button):
+        """Функция нажатия на клавиатуру"""
         pass
 
     def show(self, surf):
+        """Отображение на поверхности"""
         pass
 
 
 class AnimatedElement(Element):
+    """Класс анимированного элемента в окне"""
 
     def __init__(self, path, position, animator_options=None):
         super().__init__()
-        self.animator = Animator(path, animator_options)
-        self.position = position
-        self.rect = self.animator.next_()[0].get_rect(topleft=position)
+        self.animator = Animator(path, animator_options)  # создаем аниматор
+        self.position = position  # позиция
+        self.rect = self.animator.next_()[0].get_rect(topleft=position)  # определяем прямоугольник
 
     def show(self, surf):
+        """Отображение на поверхности"""
         image, shift = self.animator.next_()
         surf.blit(image, (self.position[0] + shift[0], self.position[1] + shift[1]))
 
 
 class Button(AnimatedElement):
+    """Класс кнопки"""
 
     def __init__(self, name, position, target, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
-        self.target = target
+        self.target = target  # имя окна, в которое мы перейдем, если нажмем на эту кнопку
 
     def button_down(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
-            music.play_sound('button_down')
-            return self.target
+        """Функция нажатия мыши"""
+        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
+            music.play_sound('button_down')  # проигрываем звук нажатия
+            return self.target  # возвращаем имя окна, в которое нужно перейти
 
     def mouse_motion(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
+        """Функция движения мыши"""
+        if self.rect.collidepoint(mouse_pos):  # если навели на кнопку
             if self.animator.animation == 'idle':
-                self.animator.start('hover')
+                self.animator.start('hover')  # включаем анимацию наведения
         else:
-            self.animator.start('idle')
+            self.animator.start('idle')  # иначе включаем анимацию покоя
 
 
 class Image(AnimatedElement):
+    """Класс изображения"""
 
     def __init__(self, name, position, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
 
 
 class AntiButton(AnimatedElement):
+    """Класс анти-кнопки"""
 
     def __init__(self, name, position, target):
         super().__init__('Sprites/' + name, position)
-        self.target = target
+        self.target = target  # имя окна, в которое мы перейдем, если нажмем на вне этой кнопки
 
     def button_down(self, mouse_pos):
-        if not self.rect.collidepoint(mouse_pos):
-            return self.target
+        """Функция нажатия мыши"""
+        if not self.rect.collidepoint(mouse_pos):  # если нажали не на кнопку
+            return self.target  # возвращаем имя окна, в которое нужно перейти
 
 
 class Slider(AnimatedElement):
+    """Класс слайдера"""
 
     def __init__(self, name, position, borders, function):
         super().__init__('Sprites/' + name, position)
-        self.capture = False
-        self.borders = borders
-        self.function = function
+        self.capture = False  # нажат ли на слайдер
+        self.borders = borders  # границы слайдера
+        self.function = function  # функция, вызываемая при изменении значения
 
     def button_down(self, mouse_pos):
+        """Функция нажатия мыши"""
+        # проверяем нажали ли на слайдер
         if self.rect.collidepoint(mouse_pos):
             self.capture = True
         else:
             self.capture = False
 
     def button_up(self, mouse_pos):
+        """Функция отпускания мыши"""
         self.capture = False
 
     def mouse_motion(self, mouse_pos):
-        if self.capture:
+        """Функция движения мыши"""
+        if self.capture:  # если слайдер зажат
+            # то двигаем его, не выходя за границы
             if self.borders[0] <= mouse_pos[0] <= self.borders[1]:
                 x = mouse_pos[0]
             elif mouse_pos[0] < self.borders[0]:
                 x = self.borders[0]
             elif mouse_pos[0] > self.borders[1]:
                 x = self.borders[1]
-            self.position = (x, self.position[1])
-            self.rect = self.animator.next_()[0].get_rect(topleft=self.position)
+            self.position = (x, self.position[1])  # меняем позицию
+            self.rect = self.animator.next_()[0].get_rect(topleft=self.position)  # и прямоугольник
+            # вызываем функцию, привязанную к изменению значения слайдера
             getattr(music, self.function)((x - self.borders[0]) / (self.borders[1] - self.borders[0]))
 
 
 class Text(Element):
+    """Класс текста"""
 
     def __init__(self, position, color, target=None, attr_name=None, text=None):
         super().__init__()
-        self.position = position
-        self.color = color
-        self.target = target
-        self.attr_name = attr_name
-        self.text = text
+        self.position = position  # позиция
+        self.color = color  # цвет
+        self.target = target  # либо объект класса игрок
+        self.attr_name = attr_name  # и имя атрибута, которе нужно отображать
+        self.text = text  # либо статичный текста
 
-        self.font = pygame.font.Font(None, 40)
+        self.font = pygame.font.Font(None, 40)  # шрифт
 
     def show(self, surf):
-        if self.target and self.attr_name:
-            value = getattr(self.target, self.attr_name)
+        """Отображение на поверхности"""
+        if self.target and self.attr_name:  # если есть объект класса игрок и его атрибут
+            value = getattr(self.target, self.attr_name)  # то отображаем его
             surf.blit(self.font.render(str(value[0]) + '/' + str(value[1]), True, self.color), self.position)
-        elif self.text:
+        elif self.text:  # если есть статичный текст, то отбражаем его
             surf.blit(self.font.render(str(self.text), True, self.color), self.position)
-        else:
+        else:  # иначе отображаем пустую строку
             surf.blit(self.font.render('', True, self.color), self.position)
 
 
 class Panel(Element):
+    """Класс панели"""
 
     def __init__(self, target, active, yShift):
         super().__init__()
@@ -188,6 +213,7 @@ class Panel(Element):
         ]
 
     def show(self, surf):
+        """Отображение на поверхности"""
         self.background.show(surf)
         if self.active:
             for obj in self.objects:
@@ -202,75 +228,86 @@ class Panel(Element):
 
 
 class InventorySlot(Element):
+    """Класс слота в инвентаре"""
 
     def __init__(self, position, image, description):
         super().__init__()
-        self.position = position
-        self.base = load_image('Sprites/inventory/slot.png')
-        self.image = image
-        self.rect = self.base.get_rect(topleft=position)
-        self.description = Text(DESCRIPTION_POSITION, DESCRIPTION_COLOR, text=description)
+        self.position = position  # позиция
+        self.base = load_image('Sprites/inventory/slot.png')  # пустой слот инвентаря
+        self.image = image  # содержимое слота
+        self.rect = self.base.get_rect(topleft=position)  # прямоугольник
+        self.description = Text(DESCRIPTION_POSITION, DESCRIPTION_COLOR, text=description)  # описание
 
     def show(self, surf):
-        surf.blit(self.base, self.position)
-        if self.image:
-            surf.blit(self.image, self.position)
+        """Отображение на поверхности"""
+        surf.blit(self.base, self.position)  # отображаем пустой слот
+        if self.image:  # если есть содержимое,
+            surf.blit(self.image, self.position)  # то отображаем его
 
     def show_description(self, surf):
+        """Отображение описания"""
         self.description.show(surf)
 
     def button_down(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
+        """Функция нажатия мыши"""
+        if self.rect.collidepoint(mouse_pos):  # нажали ли на слот
             return True
 
 
 class Inventory(Element):
+    """Класс инвентаря"""
 
     def __init__(self, target):
         super().__init__()
-        self.base = AntiButton('game/inventory', (97, 97), 'game')
+        self.base = AntiButton('game/inventory', (97, 97), 'game')  # изображения инвентаря
 
+        # словарь вида {названия содержимого в инвентаре: [картинка, описание]}
         self.image_keys = {
             'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors')
         }
 
-        self.target = target
-        self.slots = []
-        self.active_slot = None
+        self.target = target  # в какое окно мы перейдем, при выходе из инвентаря
+        self.slots = []  # слоты
+        self.active_slot = None  # выбранный слот
 
     def update(self):
-        self.slots = []
+        """Обновление слотов"""
+        self.slots = []  # опустошаем слоты
         counter = 0
         for i in range(4):
             self.slots.append([])
             for k in range(5):
+                # определяем параметры для нового слота
                 if counter < len(self.target.inventory):
+                    # слот с содержимым согласно инвентарю игрока
                     params = self.image_keys[self.target.inventory[counter]]
                 else:
-                    params = (None, '')
+                    params = (None, '')  # пустой слот
                 self.slots[i].append(InventorySlot((100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
                                                     100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
-                                                   *params))
+                                                   *params))  # создаем новый слот
                 counter += 1
 
-        self.active_slot = None
+        self.active_slot = None  # опустошаем активный слот
 
     def show(self, surf):
-        self.update()
-        self.base.show(surf)
+        """Отображение на поверхности"""
+        self.update()  # обновляем слоты
+        self.base.show(surf)  # показываем картинку инвентаря
         for i in range(len(self.slots)):
             for k in range(len(self.slots[i])):
-                self.slots[i][k].show(surf)
-        if self.active_slot:
-            self.active_slot.show_description(surf)
+                self.slots[i][k].show(surf)  # показываем слоты
+        if self.active_slot:  # если есть выбранный слот, то
+            self.active_slot.show_description(surf)  # показываем его описание
 
     def button_down(self, mouse_pos):
-        res = self.base.button_down(mouse_pos)
+        """Функция нажатия мыши"""
+        res = self.base.button_down(mouse_pos)  # если нажали вне инвентаря
         if res:
-            return res
+            return res  # то переходим в игру
         for i in range(len(self.slots)):
-            for k in range(len(self.slots[i])):
+            for k in range(len(self.slots[i])):  # если нажали на слот
                 if self.slots[i][k].button_down(mouse_pos):
-                    self.active_slot = self.slots[i][k]
+                    self.active_slot = self.slots[i][k]  # то он становится активным
                     return
-        self.active_slot = None
+        self.active_slot = None  # опустошаем активный слот
