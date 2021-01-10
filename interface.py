@@ -55,6 +55,9 @@ class Window:
         surf.blit(self.fader, (0, 0))
 
     def update(self, surf, events):
+        if self.name == 'exit':
+            pygame.quit()
+            sys.exit(1)
         if self.first_load:
             # EDIT
             # fix buttons hover at first load
