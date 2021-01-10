@@ -1,8 +1,8 @@
 from animator import Animator
 import pygame
+import config
 from config import *
 import sys
-from config import music
 from functions import *
 
 
@@ -50,7 +50,11 @@ class Window:
             if self.first_load:
                 music.play_music(self.music_name)
                 self.first_load = False
-
+        if config.LOSE:
+            if self.name != 'lose':
+                config.LOSE = False
+                self.objects[0].new()
+                return 'lose'
         self.first_load = True
         return self.get_event(events)
 

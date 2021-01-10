@@ -1,6 +1,5 @@
 from objects import *
 from entity import Player, Enemy
-import config
 from functions import *
 import random
 from PIL import Image
@@ -59,8 +58,23 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 5, 3)
+        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
         self.current_room = 1
+        self.turn = 1
+
+        self.change_room(1)
+
+    def new(self):
+        self.first = True
+        self.rooms = {}
+        self.enemies = []
+        self.objects = []
+        self.base = []
+        self.entities = []
+
+        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
+        self.current_room = 1
+        self.turn = 1
 
         self.change_room(1)
 
@@ -218,12 +232,12 @@ class Dungeon(Element):
             res.append(enemy.interaction(self, diff))
 
         if not any(res):
-            config.TURN = 1
+            self.turn = 1
             for enemy in self.enemies:
                 enemy.action_points[0] = enemy.action_points[1]
 
     def show(self, surf):
-        if config.TURN == 2:
+        if self.turn == 2:
             self.enemies_move()
 
         surf.blit(self.background, apply((0, 0)))
@@ -253,5 +267,5 @@ class Dungeon(Element):
                 return res
 
     def key_down(self, button):
-        if config.TURN == 1:
+        if self.turn == 1:
             self.player_move(button)

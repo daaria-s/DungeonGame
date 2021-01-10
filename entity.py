@@ -52,9 +52,9 @@ class Entity:
         }
         if keys[target.name][0](*keys[target.name][1]):
             self.action_points[0] -= 1
-            if self.action_points[0] == 0 and config.TURN == 1:
+            if self.action_points[0] == 0 and dungeon_.turn == 1:
                 self.action_points[0] = self.action_points[1]
-                config.TURN = 2
+                dungeon_.turn = 2
             return True
 
     def interaction_entity(self, obj):
