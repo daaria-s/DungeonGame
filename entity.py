@@ -129,7 +129,7 @@ class Player(Entity):
 
     def die(self):
         super().die()
-        config.LOSE = True
+        config.LOSE_COUNTER = 56
 
 
 class Enemy(Entity):

@@ -50,11 +50,12 @@ class Window:
             if self.first_load:
                 music.play_music(self.music_name)
                 self.first_load = False
-        if config.LOSE:
-            if self.name != 'lose':
-                config.LOSE = False
-                self.objects[0].new()
-                return 'lose'
+        if config.LOSE_COUNTER > 0:
+            config.LOSE_COUNTER -= 1
+        if config.LOSE_COUNTER == 1:
+            config.LOSE_COUNTER = 0
+            self.objects[0].new()
+            return 'lose'
         self.first_load = True
         return self.get_event(events)
 
