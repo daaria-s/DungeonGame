@@ -58,10 +58,8 @@ if __name__ == '__main__':
             AntiButton('save/panel', (97, 152), 'game'),
             Image('save/title', (211, 172)),
             InputBox('save/input_box', (119, 243), ''),
-            Button('save/save', (219, 330), 'game', {'cycle': True}),
-            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True},  
-                       music_name='game'),
-
+            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True}],
+                       music_name='game')
 
     }
 
