@@ -19,7 +19,7 @@ class Entity(GameObject):
         self.inventory = []
 
     def get_direction(self, obj):
-        """Получение текстового представления направления до соседнего объекта"""
+        """Получение представления направления до соседнего объекта"""
         movement_keys = {
             (1, 0): 'left',
             (-1, 0): 'right',
@@ -27,15 +27,19 @@ class Entity(GameObject):
             (0, -1): 'down'
         }
         return movement_keys[
-            (self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
+            (self.position[0] - obj.position[0],
+             self.position[1] - obj.position[1])]
 
     def interaction(self, dungeon_, movement):
         """Взаимодействие с другим объектом"""
-        target = dungeon_.get(self.position, movement)  # получаем цель взаимодействия
+        target = dungeon_.get(self.position,
+                              movement)  # получаем цель взаимодействия
         if not target or self.action_points[0] == 0:
-            return False  # если цели нет или закончиличь очки действий ничего не делаем
+            return False
+            # если цели нет или закончились очки действий ничего не делаем
 
-        # словарь вида [имя объекта взаимодействия: [функция взаимодействия, аргументы для этой функции]]
+        # словарь вида [имя объекта взаимодействия:
+        # [функция взаимодействия, аргументы для этой функции]]
         keys = {
             'enemy': [self.interaction_entity, [target]],
             'player': [self.interaction_entity, [target]],
@@ -46,16 +50,22 @@ class Entity(GameObject):
             'teleport': [self.interaction_teleport, [target]],
             'door': [self.interaction_door, [target]]
         }
-        if keys[target.name][0](*keys[target.name][1]):  # если взаимодействие прошло успешно
+        if keys[target.name][0](
+                *keys[target.name][1]):  # если взаимодействие прошло успешно
             self.action_points[0] -= 1  # уменьшаем количество очков действий
-            if self.action_points[0] == 0 and dungeon_.turn == 1:  # если закончился ход игрока
-                self.action_points[0] = self.action_points[1]  # то передаем ход врагам
+            if self.action_points[0] == 0 and\
+                    dungeon_.turn == 1:  # если закончился ход игрока
+                self.action_points[0] = self.action_points[
+                    1]  # то передаем ход врагам
                 dungeon_.turn = 2
-            return True  # возвращаем True для индикации успещности взаимодействия
+            return True
+            # возвращаем True для индикации успещности взаимодействия
 
     def interaction_entity(self, obj):
         """Взаимодействие с существами"""
-        if obj.hit_points[0] <= 0:  # если существо мертво, то просто перемещаемся в нужную точу
+        # EDIT
+        if obj.hit_points[0] <= 0:
+            # если существо мертво, то просто перемещаемся в нужную точу
             self.animator.start('move_' + self.get_direction(obj))
             self.position = obj.position
         else:  # если существо живо, то атакуем его
@@ -113,20 +123,22 @@ class Player(Entity):
                          min_damage, max_damage,
                          action_points, max_action_points)
 
-    def new_inventory(self, object):
-        if object == 'health' and self.hit_points[0] < self.hit_points[1]:
+    def new_inventory(self, object_):
+        if object_ == 'health' and self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
-        else:
-            self.inventory.append(object)
+        elif len(self.inventory) < 20:
+            self.inventory.append(object_)
 
     def interaction_box(self, dungeon_, movement):
         """Взаимодействие с коробкой"""
         # получаем клетку, в которую должна подвинуться коробка
-        next_cell = dungeon_.get(self.position, (movement[0] * 2, movement[1] * 2))
+        next_cell = dungeon_.get(self.position,
+                                 (movement[0] * 2, movement[1] * 2))
         if next_cell and next_cell.name == 'empty':  # если клетка свободна
             box = dungeon_.get(self.position, movement)  # получаем коробку
             self.interaction_empty(box)  # двигаем игрока
-            box.move((self.position[0] + movement[1], self.position[1] + movement[0]),
+            box.move((self.position[0] + movement[1],
+                      self.position[1] + movement[0]),
                      self.get_direction(next_cell))
             return True
 
@@ -151,9 +163,12 @@ class Player(Entity):
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""
-        if (self.position[1], self.position[0]) == obj.rooms[obj.current_room].exit_:
+        if (self.position[1], self.position[0]) ==\
+                obj.rooms[obj.current_room].exit_:
             obj.change_room(obj.current_room + 1)
-        elif obj.current_room != 1 and (self.position[1], self.position[0]) == obj.rooms[obj.current_room].enter:
+        elif obj.current_room != 1 and \
+                (self.position[1], self.position[0]) == \
+                obj.rooms[obj.current_room].enter:
             obj.change_room(obj.current_room - 1)
 
     def die(self):
