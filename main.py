@@ -1,5 +1,6 @@
 from dungeon import Dungeon
 from interface import *
+from objects import *
 
 
 if __name__ == '__main__':
@@ -33,7 +34,13 @@ if __name__ == '__main__':
             Slider('settings/slider', (442, 343), (309, 442), 'set_sounds_volume'),
         ]
                            ),
-        'load': Window('load', []),
+        'load': Window('load', [
+            AntiButton('load/panel', (97, 152), 'menu'),
+            Image('load/title', (211, 172)),
+            TextBox('load/cell', (119, 263), ''),
+            Button('load/load', (139, 350), 'game', {'cycle': True}),
+            # Button('load/cancel', (319, 330), 'game', {'cycle': True}),
+        ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
         'lose': Window('lose', [
@@ -43,7 +50,13 @@ if __name__ == '__main__':
             Button('lose/new_game', (352, 300), 'game'),
         ]),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
-        'save': Window('save', [dungeon])
+        'save': Window('save', [
+            AntiButton('save/panel', (97, 152), 'game'),
+            Image('save/title', (211, 172)),
+            InputBox('save/input_box', (119, 243), ''),
+            Button('save/save', (119, 330), 'game', {'cycle': True}),
+            Button('save/cancel', (319, 330), 'game', {'cycle': True}),
+        ])
 
     }
 

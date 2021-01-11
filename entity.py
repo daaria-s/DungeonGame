@@ -120,11 +120,9 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        self.inventory = []  # у игрока есть инвентарь
+        self.inventory = []
 
     def new_inventory(self, object):
-        print(self.hit_points)
-        print(object)
         if object == 'health' and self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
         else:
@@ -142,15 +140,23 @@ class Player(Entity):
             return True
 
     def interaction_chest(self, obj):
-        """Взаимодействие с сундуком"""
-        self.animator.start('attack_' + self.get_direction(obj))  # включаем анимацию атаки
-        res = obj.touch()  # вызываем функцию касания сундука
-        if res == '__empty__':  # если сундук пуст
-            self.interaction_empty(obj)  # то перемещаемся в эту клетку
+        self.animator.start('attack_' + self.get_direction(obj))
+        res = obj.touch()
+        if res == '__empty__':
+            self.interaction_empty(obj)
             return True
         elif res:
-            self.inventory.append(res)  # если в сундуке что-то есть, добавляем в свой инвентарь
+            self.new_inventory(res)
             return True
+
+    def interaction_door(self, obj):
+        self.animator.start('attack_' + self.get_direction(obj))
+        res = obj.touch()
+        if res == '__empty__':
+            self.interaction_empty(obj)
+            return True
+        if obj.color + '_key' in self.inventory:
+            self.inventory.remove(obj.color + '_key')
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""

@@ -5,6 +5,7 @@ from functions import *
 import random
 from PIL import Image
 from interface import Panel, Button, Element
+import sqlite3
 
 
 class UnknownMapSymbol(Exception):
@@ -26,30 +27,30 @@ class Room:
         return self.exit_[0], 0
 
     def structure(self):
-        map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+        map_ = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
+                ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
         if self.enter:
-            map[self.enter[0]][self.enter[1]] = self.num - 1
+            map_[self.enter[0]][self.enter[1]] = self.num - 1
 
-        map[self.exit_[0]][self.exit_[1]] = self.num + 1
+        map_[self.exit_[0]][self.exit_[1]] = self.num + 1
 
-        return map
+        return map_
 
 
 class Dungeon(Element):
-    """Класс подземелья"""
 
     def __init__(self, user_name=''):
         super().__init__()
 
+        self.unused_keys = []
         self.first = True
         self.rooms = {}
         self.enemies = []
@@ -57,23 +58,8 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
-        self.turn = 1
-
-        self.change_room(1)
-
-    def new(self):
-        self.first = True
-        self.rooms = {}
-        self.enemies = []
-        self.objects = []
-        self.base = []
-        self.entities = []
-
-        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
-        self.current_room = 1
-        self.turn = 1
 
         self.change_room(1)
 
@@ -136,12 +122,13 @@ class Dungeon(Element):
         if num != 1:
             enter = self.rooms[num - 1].enter_from_exit()
 
-        for i in range(random.randint(3, 5)):
+        num1, num2 = (2, 4) if num < 4 else (3, 5)
+        for i in range(random.randint(num1, num2)):
             x, y = random.randint(2, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 2, 2))
+                Enemy((x, y), random.choice(['green', 'blue', 'purple', 'red']), 2, 2, 1, 1, 2, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
@@ -151,7 +138,8 @@ class Dungeon(Element):
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
-        for i in range(random.randint(0, 2)):
+        a, b = (0, 2)
+        for i in range(random.randint(a, b)):
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
@@ -159,13 +147,26 @@ class Dungeon(Element):
             closed_cells.append((x, y))
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
+        if not random.randint(0, 2) and len(self.unused_keys) < 6:
+            door_color = random.choice(['red', 'blue'])
+
+            x, y = random.randint(1, 9), random.randint(1, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(2, 9), random.randint(2, 8)
+            self.objects.append(Chest((x, y), 'key', door_color))
+            self.unused_keys.append(door_color)
+
+        if not random.randint(0, 2) and self.unused_keys:
+            self.objects.append(Door((exit_[1], exit_[0]), self.unused_keys.pop(
+                random.randint(0, len(self.unused_keys) - 1))))
+
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
                                enter=enter)
 
-    def load_map(self, user_name):
+    def load(self, user_name):
         pass
 
-    def save_map(self):
+    def save(self):
         print('save')
 
     def get(self, coords, diff=(0, 0)):
@@ -189,7 +190,10 @@ class Dungeon(Element):
         }
 
         if self.player.animator.animation != 'idle':
-            return  # если игрок не покоится, то он не может начать новое действие
+            return
+
+        self.player.interaction_teleport(self)
+
         if button not in buttons_keys.keys():
             return  # если нажали на неизвестную кнопку
 
