@@ -11,7 +11,8 @@ class Object:
 
     def show(self, surf):
         """Отображение объекта"""
-        image, shift = self.animator.next_()   # получаем следущий кадр анимации и смещение
+        image, shift = self.animator.next_()
+        # получаем следущий кадр анимации и смещение
         # отображаем его на поверхность с учетом смещения
         surf.blit(image, apply((self.position[0] * TILE + shift[0],
                                 self.position[1] * TILE + shift[1])))
@@ -53,11 +54,11 @@ class Box(Object):
 
 class Chest(Object):
 
-    def __init__(self, position, object, color=None):
+    def __init__(self, position, object_, color=None):
         super().__init__('chest', position, 'chest')
-        if object == 'key':
+        if object_ == 'key':
             self.inside = Key(self.position, color)
-        elif object == 'potion':
+        elif object_ == 'potion':
             self.inside = Potion(self.position, 'green')
         self.stage = 0
 

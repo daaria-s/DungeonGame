@@ -1,7 +1,7 @@
 from dungeon import Dungeon
 from interface import *
 from objects import *
-
+import config
 
 if __name__ == '__main__':
     pygame.init()
@@ -28,16 +28,21 @@ if __name__ == '__main__':
             Image('settings/sounds', (131, 330)),
             Image('settings/scrollbar', (309, 233)),
             Image('settings/scrollbar', (309, 351)),
-            Slider('settings/slider', (442, 225), (309, 442), 'set_music_volume'),
-            Slider('settings/slider', (442, 343), (309, 442), 'set_sounds_volume'),
+            Slider('settings/slider', (442, 225), (309, 442),
+                   'set_music_volume'),
+            Slider('settings/slider', (442, 343), (309, 442),
+                   'set_sounds_volume'),
         ]
                            ),
         'load': Window('load', [
             AntiButton('load/panel', (97, 152), 'menu'),
             Image('load/title', (211, 172)),
-            TextBox('load/cell', (119, 263), ''),
-            Button('load/load', (139, 350), 'game', {'cycle': True}),
-            Button('load/cancel', (319, 350), 'menu', {'cycle': True}),
+            Image('load/cell', (119, 263)),
+            Text((134, 278), DESCRIPTION_COLOR, target=config,
+                 attr_name='USER_NAME'),
+            Arrow('load/down', (411, 322), +1),
+            Arrow('load/up', (411, 172), 11),
+            Button('load/load', (219, 350), 'game', {'cycle': True}),
         ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
@@ -47,13 +52,12 @@ if __name__ == '__main__':
             Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
             Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
         ]),
-        'inventory': Window('inventory', [Inventory(dungeon.player)]),
+        'inventory': Window('inventory', [Inventory(dungeon)]),
         'save': Window('save', [
             AntiButton('save/panel', (97, 152), 'game'),
             Image('save/title', (211, 172)),
             InputBox('save/input_box', (119, 243), ''),
-            Button('save/save', (119, 330), 'game', {'cycle': True}),
-            Button('save/cancel', (319, 330), 'game', {'cycle': True}),
+            Button('save/save', (219, 330), 'game', {'cycle': True}),
         ])
 
     }
@@ -61,7 +65,9 @@ if __name__ == '__main__':
     current_window = windows['menu']  # устанавливает текущее окно
     clock = pygame.time.Clock()
     while True:  # бесконечный игровой цикл
-        # обновляем окно и делаем отрисовку в зависимости от произошедших событий
-        current_window = windows[current_window.update(screen, pygame.event.get())]
+        # обновляем окно и делаем отрисовку
+        # в зависимости от произошедших событий
+        current_window = windows[
+            current_window.update(screen, pygame.event.get())]
         pygame.display.flip()  # обновление экрана
         clock.tick(FPS)  # задержка

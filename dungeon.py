@@ -41,7 +41,7 @@ class Room:
 
 class Dungeon(Element):
 
-    def __init__(self, user_name=''):
+    def __init__(self):
         super().__init__()
 
         self.unused_keys = []
@@ -51,6 +51,9 @@ class Dungeon(Element):
         self.objects = []
         self.base = []
         self.entities = []
+        self.buttons = []
+
+        self.background, self.top_panel, self.bottom_panel = None, None, None
 
         self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
@@ -62,12 +65,14 @@ class Dungeon(Element):
         # EDIT
         # simple code
         self.unused_keys = []
-        self.first = True
         self.rooms = {}
         self.enemies = []
         self.objects = []
         self.base = []
         self.entities = []
+        self.buttons = []
+
+        self.background, self.top_panel, self.bottom_panel = None, None, None
 
         self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
@@ -104,7 +109,9 @@ class Dungeon(Element):
         level = self.rooms[num_of_room].structure()
         empty = Image.open('Sprites/ground/idle/00.png')
         wall = Image.open('Sprites/wall/idle/00.png')
-        background = Image.new('RGB', (len(level[0]) * TILE, len(level) * TILE), (255, 255, 255))
+        background = Image.new('RGB',
+                               (len(level[0]) * TILE, len(level) * TILE),
+                               (255, 255, 255))
         # собираем из маленьких изображений пустых клетов и стен
         # одно большое изображение поля чтобы потом отображать только его
         for i in range(len(level)):
@@ -140,7 +147,9 @@ class Dungeon(Element):
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y), random.choice(['green', 'blue', 'purple', 'red']), 2, 2, 1, 1, 2, 2))
+                Enemy((x, y),
+                      random.choice(['green', 'blue', 'purple', 'red']), 2, 2,
+                      1, 1, 2, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
@@ -157,7 +166,8 @@ class Dungeon(Element):
                 x, y = random.randint(1, 9), random.randint(2, 8)
             self.objects.append(Chest((x, y), 'potion'))
             closed_cells.append((x, y))
-        exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
+        exit_ = random.choice(
+            [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
             door_color = random.choice(['red', 'blue'])
@@ -169,17 +179,19 @@ class Dungeon(Element):
             self.unused_keys.append(door_color)
 
         if not random.randint(0, 2) and self.unused_keys:
-            self.objects.append(Door((exit_[1], exit_[0]), self.unused_keys.pop(
-                random.randint(0, len(self.unused_keys) - 1))))
+            self.objects.append(
+                Door((exit_[1], exit_[0]), self.unused_keys.pop(
+                    random.randint(0, len(self.unused_keys) - 1))))
 
-        self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
+        self.rooms[num] = Room(exit_, self.enemies, self.objects,
+                               self.current_room,
                                enter=enter)
 
     def load(self, user_name):
         pass
 
     def save(self):
-        print('save')
+        pass
 
     def get(self, coords, diff=(0, 0)):
         """Возвращает объект по координатам"""
@@ -190,8 +202,10 @@ class Dungeon(Element):
     def player_move(self, button):
         """Движение игрока"""
 
-        if any([i.animator.animation not in ['idle', 'die'] for i in self.enemies]):
-            return  # если враги еще соверщают какие-то действия, то игрок стоит
+        if any([i.animator.animation not in ['idle', 'die'] for i in
+                self.enemies]):
+            return
+            # если враги еще соверщают какие-то действия, то игрок стоит
 
         # словарь вида {кнопка: (смещение на X и Y)}
         buttons_keys = {
@@ -204,18 +218,20 @@ class Dungeon(Element):
         if self.player.animator.animation != 'idle':
             return
 
-        self.player.interaction_teleport(self) # EDIT
+        self.player.interaction_teleport(self)  # EDIT
 
         if button not in buttons_keys.keys():
             return  # если нажали на неизвестную кнопку
 
-        self.player.interaction(self, buttons_keys[button])  # взаимодействуем с объектом
+        self.player.interaction(self, buttons_keys[
+            button])  # взаимодействуем с объектом
 
     def enemies_move(self):
         """Движение врагов"""
 
         if self.player.animator.animation != 'idle':
-            return  # если игрок что-то делает, то враги не начинают новых действий
+            return
+            # если игрок что-то делает, то враги не начинают новых действий
 
         options = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         res = []
@@ -226,6 +242,13 @@ class Dungeon(Element):
                 continue
 
             diff = options[random.randint(0, len(options) - 1)]
+            checking = []
+            for i in options:
+                checking.append(
+                    self.get(enemy.position, i).name in ('player', 'empty'))
+            if not any(checking):  # если врагу некуда идти
+                res.append(False)
+                continue
 
             player_pos = self.player.position
             enemy_pos = enemy.position
@@ -244,16 +267,22 @@ class Dungeon(Element):
             while (
                     enemy_pos[0] + diff[0],
                     enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
-                self.get(enemy_pos, diff), (Player, Empty)):
+                    self.get(enemy_pos, diff), (Player, Empty)):
                 diff = options[random.randint(0, len(options) - 1)]
 
-            blocked_cells.append((enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
+            blocked_cells.append(
+                (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
 
             if enemy.animator.animation != 'idle':
-                res.append(True)  # если враг уже совершает действие, то переходим к следущему врагу
+                res.append(
+                    True)
+                # если враг уже совершает действие,
+                # то переходим к следущему врагу
                 continue
 
-            res.append(enemy.interaction(self, diff))  # добавляем результат взаимодействия с список
+            res.append(enemy.interaction(self,
+                                         diff))
+            # добавляем результат взаимодействия с список
 
         if not any(res):  # если у всех врагов закончились очки действий
             self.turn = 1  # передаем ход игроку
@@ -280,7 +309,8 @@ class Dungeon(Element):
     def button_down(self, mouse_pos):
         """Нажатие мыши"""
         # получаем объект, на который нажали
-        obj = self.get((mouse_pos[0] // TILE, (mouse_pos[1] - PANEL_HEIGHT) // TILE))
+        obj = self.get(
+            (mouse_pos[0] // TILE, (mouse_pos[1] - PANEL_HEIGHT) // TILE))
         if isinstance(obj, Enemy) and obj.alive:  # если нажали на врага
             self.bottom_panel.change_target(obj)  # меняем цель нижней панели
         else:
