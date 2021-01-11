@@ -406,6 +406,7 @@ class InputBox(AnimatedElement):
             self.input_.text = self.input_.text[:-1]
         elif len(pygame.key.name(key)) == 1 and pygame.key.name(key).isalnum():
             self.input_.text += pygame.key.name(key)
+        config.INPUT_USER = self.input_.text
 
     def show(self, surf):
         super().show(surf)
@@ -423,3 +424,31 @@ class Arrow(Button):
             music.play_sound('button_down')  # проигрываем звук нажатия
             config.N = (config.N + self.function) % config.MAX_N
             config.USER_NAME = config.USERS[config.N] if config.USERS else None
+
+
+class SaveButton(Button):
+    def __init__(self, name, position, target, obj, animator_options=None):
+        super().__init__(name, position, target, animator_options)
+        self.obj = obj  # объект подземелья
+        self.target = target
+
+    def button_down(self, mouse_pos):
+        """Функция нажатия мыши"""
+        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
+            if self.obj.user_name not in config.USERS:
+                self.obj.save(config.INPUT_USER)
+                return self.target
+
+
+class LoadButton(Button):
+    def __init__(self, name, position, target, obj, animator_options=None):
+        super().__init__(name, position, target, animator_options)
+        self.obj = obj  # объект подземелья
+        self.target = target
+
+    def button_down(self, mouse_pos):
+        """Функция нажатия мыши"""
+        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
+            if config.USER_NAME:
+                self.obj.load(config.USER_NAME)
+                return self.target

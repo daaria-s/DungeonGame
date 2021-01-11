@@ -40,9 +40,9 @@ if __name__ == '__main__':
             Image('load/cell', (119, 263)),
             Text((134, 278), DESCRIPTION_COLOR, target=config,
                  attr_name='USER_NAME'),
-            Arrow('load/down', (411, 322), +1),
-            Arrow('load/up', (411, 172), 11),
-            Button('load/load', (219, 350), 'game', {'cycle': True}),
+            Arrow('load/down', (411, 322), +1, {'cycle': True}),
+            Arrow('load/up', (411, 172), -1, {'cycle': True}),
+            LoadButton('load/load', (219, 350), 'game', dungeon, {'cycle': True}),
         ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
@@ -59,7 +59,9 @@ if __name__ == '__main__':
             Image('save/title', (211, 172)),
             InputBox('save/input_box', (119, 243), ''),
             Button('save/save', (219, 330), 'game', {'cycle': True}),
-        ], music_name='game')
+            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True},  
+                       music_name='game'),
+
 
     }
 

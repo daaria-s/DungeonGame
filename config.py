@@ -29,3 +29,4 @@ cur = con.cursor()
 USERS = list(map(lambda x: x[0], cur.execute("""SELECT user_name FROM users""").fetchall()))
 N, MAX_N = 0, len(USERS)
 USER_NAME = USERS[N] if USERS else None
+INPUT_USER = ''
