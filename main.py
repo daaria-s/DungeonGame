@@ -42,7 +42,8 @@ if __name__ == '__main__':
                  attr_name='USER_NAME'),
             Arrow('load/down', (411, 322), +1, {'cycle': True}),
             Arrow('load/up', (411, 172), -1, {'cycle': True}),
-            LoadButton('load/load', (219, 350), 'game', dungeon, {'cycle': True}),
+            LoadButton('load/load', (219, 350), 'game', dungeon,
+                       {'cycle': True}),
         ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
@@ -58,7 +59,8 @@ if __name__ == '__main__':
             AntiButton('save/panel', (97, 152), 'game'),
             Image('save/title', (211, 172)),
             InputBox('save/input_box', (119, 243), ''),
-            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True}],
+            SaveButton('save/save', (219, 330), 'game', dungeon,
+                       {'cycle': True})],
                        music_name='game')
 
     }

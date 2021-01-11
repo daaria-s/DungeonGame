@@ -144,7 +144,8 @@ class Button(AnimatedElement):
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
+        # если нажали на кнопку
+        if self.rect.collidepoint(mouse_pos) and self.target:
             music.play_sound('button_down')  # проигрываем звук нажатия
             self.animator.start('idle')
             return self.target  # возвращаем имя окна, в которое нужно перейти
@@ -415,7 +416,7 @@ class InputBox(AnimatedElement):
 
 class Arrow(Button):
     def __init__(self, name, position, function, animator_options=None):
-        super().__init__(name, position, animator_options)
+        super().__init__(name, position, None, animator_options)
         self.function = function  # функция, которую надо выполнить при нажатии
 
     def button_down(self, mouse_pos):
