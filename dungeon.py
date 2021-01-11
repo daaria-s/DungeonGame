@@ -14,8 +14,6 @@ class UnknownMapSymbol(Exception):
 class Room:
     def __init__(self, exit_, enemies, objects, num_of_room, enter=None):
         self.num = num_of_room
-        if num_of_room == 1:
-            self.first_room = True
         self.enter = enter
         self.exit_ = exit_
 
@@ -42,7 +40,6 @@ class Room:
             map[self.enter[0]][self.enter[1]] = self.num - 1
 
         map[self.exit_[0]][self.exit_[1]] = self.num + 1
-
 
         return map
 
@@ -144,7 +141,7 @@ class Dungeon(Element):
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 3, 2))
+                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 2, 2))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):
@@ -154,6 +151,12 @@ class Dungeon(Element):
             self.objects.append(Box((x, y)))
             closed_cells.append((x, y))
 
+        for i in range(random.randint(0, 2)):
+            x, y = random.randint(1, 9), random.randint(2, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(1, 9), random.randint(2, 8)
+            self.objects.append(Chest((x, y), 'potion'))
+            closed_cells.append((x, y))
         exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
@@ -163,7 +166,7 @@ class Dungeon(Element):
         pass
 
     def save_map(self):
-        pass
+        print('save')
 
     def get(self, coords, diff=(0, 0)):
         """Возвращает объект по координатам"""

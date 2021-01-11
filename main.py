@@ -43,7 +43,7 @@ if __name__ == '__main__':
             Button('lose/new_game', (352, 300), 'game'),
         ]),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
-        'save': Window('save', [])
+        'save': Window('save', [dungeon])
 
     }
 

@@ -306,7 +306,8 @@ class Inventory(Element):
 
         # словарь вида {названия содержимого в инвентаре: [картинка, описание]}
         self.image_keys = {
-            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors')
+            'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors'),
+            'health': (load_image('Sprites/inventory/green_key.png'), 'This key open red doors')
         }
 
         self.target = target  # в какое окно мы перейдем, при выходе из инвентаря
@@ -325,10 +326,10 @@ class Inventory(Element):
                     # слот с содержимым согласно инвентарю игрока
                     params = self.image_keys[self.target.inventory[counter]]
                 else:
-                    params = (None, '')  # пустой слот
+                    params = (None, '')
                 self.slots[i].append(InventorySlot((100 + INVENTORY_INDENT + k * (INVENTORY_IMAGE_SIZE[0] + INVENTORY_INDENT),
                                                     100 + INVENTORY_INDENT + i * (INVENTORY_IMAGE_SIZE[1] + INVENTORY_INDENT)),
-                                                   *params))  # создаем новый слот
+                                                   *params))
                 counter += 1
 
         self.active_slot = None

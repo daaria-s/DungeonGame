@@ -4,6 +4,7 @@ from config import *
 from animator import Animator
 from functions import *
 import random
+from objects import Key, Potion
 
 
 class Entity:
@@ -15,12 +16,12 @@ class Entity:
         self.position = position  # позиция
         self.name = name  # имя
 
-        self.action_points = [action_points, max_action_points]  # очки действий [текущие, максимальные]
-        self.damage = [min_damage, max_damage]  # урон [минимальный, максимальный]
-        self.hit_points = [hit_points, max_hit_points]  # здоровье [текущее, максимальное]
+        self.action_points = [action_points, max_action_points]
+        self.damage = [min_damage, max_damage]
+        self.hit_points = [hit_points, max_hit_points]
 
-        self.alive = True  # живо ли существо
-        self.animator = Animator('Sprites/' + path)  # аниматор
+        self.alive = True
+        self.animator = Animator('Sprites/' + path)
 
     def show(self, surf):
         """Отображение на поверхности"""
@@ -36,7 +37,8 @@ class Entity:
             (0, 1): 'up',
             (0, -1): 'down'
         }
-        return movement_keys[(self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
+        return movement_keys[
+            (self.position[0] - obj.position[0], self.position[1] - obj.position[1])]
 
     def interaction(self, dungeon_, movement):
         """Взаимодействие с другим объектом"""
@@ -94,8 +96,12 @@ class Entity:
         """Получение урона"""
         # отнимаем случайное количество жизней в рамках урона
         self.hit_points[0] -= random.randint(damage[0], damage[1])
-        if self.hit_points[0] <= 0:  # если жизней меньше 0
-            self.die()  # то существо умирает
+        if self.inventory:
+            if 'health' in self.inventory:
+                self.hit_points[0] += 1
+                self.inventory.remove('health')
+        if self.hit_points[0] <= 0:
+            self.die()
 
     def die(self):
         """Смерть существа"""
@@ -114,8 +120,15 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        # EDIT: fix
-        self.inventory = ['red_key'] * 10  # у игрока есть инвентарь
+        self.inventory = []  # у игрока есть инвентарь
+
+    def new_inventory(self, object):
+        print(self.hit_points)
+        print(object)
+        if object == 'health' and self.hit_points[0] < self.hit_points[1]:
+            self.hit_points[0] += 1
+        else:
+            self.inventory.append(object)
 
     def interaction_box(self, dungeon_, movement):
         """Взаимодействие с коробкой"""
@@ -125,7 +138,7 @@ class Player(Entity):
             box = dungeon_.get(self.position, movement)  # получаем коробку
             self.interaction_empty(box)  # двигаем игрока
             box.move((self.position[0] + movement[1], self.position[1] + movement[0]),
-                     self.get_direction(next_cell))  # двигаем коробку
+                     self.get_direction(next_cell))
             return True
 
     def interaction_chest(self, obj):
@@ -145,7 +158,6 @@ class Player(Entity):
             obj.change_room(obj.current_room + 1)
         elif obj.current_room != 1 and (self.position[1], self.position[0]) == obj.rooms[obj.current_room].enter:
             obj.change_room(obj.current_room - 1)
-        pass
 
     def die(self):
         super().die()
