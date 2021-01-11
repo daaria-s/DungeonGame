@@ -2,7 +2,7 @@ from animator import Animator
 from functions import *
 
 
-class Object:
+class GameObject:
 
     def __init__(self, path, position, name):
         self.position = position  # позиция
@@ -17,21 +17,21 @@ class Object:
                                 self.position[1] * TILE + shift[1])))
 
 
-class Wall(Object):
+class Wall(GameObject):
     """Класс стены"""
 
     def __init__(self, position):
         super().__init__('wall', position, 'wall')
 
 
-class Empty(Object):
+class Empty(GameObject):
     """Класс пустой клетки"""
 
     def __init__(self, position):
         super().__init__('ground', position, 'empty')
 
 
-class Teleport(Object):
+class Teleport(GameObject):
     """Класс телепорта"""
 
     def __init__(self, position, number):
@@ -39,7 +39,7 @@ class Teleport(Object):
         self.number = number  # номер комнаты, в которую ведет этот телепорт
 
 
-class Box(Object):
+class Box(GameObject):
     """Класс коробки"""
 
     def __init__(self, position):
@@ -51,7 +51,7 @@ class Box(Object):
         self.animator.start('move_' + direction)  # начинаем анимацию движения
 
 
-class Chest(Object):
+class Chest(GameObject):
 
     def __init__(self, position, object, color=None):
         super().__init__('chest', position, 'chest')
@@ -82,7 +82,7 @@ class Chest(Object):
                                 self.position[1] * TILE + shift[1])))
 
 
-class Door(Object):
+class Door(GameObject):
 
     def __init__(self, position, color):
         super().__init__('doors/' + color, position, 'door')
@@ -99,7 +99,7 @@ class Door(Object):
             return '__empty__'
 
 
-class Key(Object):
+class Key(GameObject):
     """Класс ключа"""
 
     def __init__(self, position, color):
@@ -107,7 +107,7 @@ class Key(Object):
         self.color = color  # цвет ключа
 
 
-class Potion(Object):
+class Potion(GameObject):
     def __init__(self, position, color):
         super().__init__('potions/' + color, position, 'health')
         self.color = color
