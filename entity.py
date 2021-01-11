@@ -1,31 +1,22 @@
 import config
-from animator import Animator
-from functions import *
+from objects import GameObject
 import random
 
 
-class Entity:
+class Entity(GameObject):
 
     def __init__(self, position, name, path,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
                  action_points, max_action_points):
-        self.position = position  # позиция
-        self.name = name  # имя
+        super().__init__(path, position, name)
 
         self.action_points = [action_points, max_action_points]
         self.damage = [min_damage, max_damage]
         self.hit_points = [hit_points, max_hit_points]
 
         self.alive = True
-        self.animator = Animator('Sprites/' + path)
         self.inventory = []
-
-    def show(self, surf):
-        """Отображение на поверхности"""
-        image, shift = self.animator.next_()
-        surf.blit(image, apply((self.position[0] * TILE + shift[0],
-                                self.position[1] * TILE + shift[1])))
 
     def get_direction(self, obj):
         """Получение представления направления до соседнего объекта"""

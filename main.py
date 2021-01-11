@@ -51,14 +51,17 @@ if __name__ == '__main__':
             Image('lose/lose_text', (196, 200)),
             Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
             Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
-        ]),
-        'inventory': Window('inventory', [Inventory(dungeon)]),
+        ], music_name='defeat'),
+        'inventory': Window('inventory', [Inventory(dungeon)],
+                            music_name='game'),
         'save': Window('save', [
             AntiButton('save/panel', (97, 152), 'game'),
             Image('save/title', (211, 172)),
             InputBox('save/input_box', (119, 243), ''),
-            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True}),
-        ])
+            Button('save/save', (219, 330), 'game', {'cycle': True}),
+            SaveButton('save/save', (219, 330), 'game', dungeon, {'cycle': True},  
+                       music_name='game'),
+
 
     }
 
