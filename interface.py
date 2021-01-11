@@ -309,7 +309,7 @@ class Inventory(Element):
             'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors'),
             'green_key': (load_image('Sprites/inventory/green_key.png'), 'This key open green doors'),
             'blue_key': (load_image('Sprites/inventory/blue_key.png'), 'This key open blue doors'),
-            'health': (load_image('Sprites/inventory/green_key.png'), 'This potion heals you')
+            'health': (load_image('Sprites/inventory/green_potion.png'), 'This potion heals you')
         }
 
         self.target = target  # в какое окно мы перейдем, при выходе из инвентаря

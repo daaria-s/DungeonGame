@@ -109,5 +109,5 @@ class Key(Object):
 
 class Potion(Object):
     def __init__(self, position, color):
-        super().__init__('keys/' + color, position, 'health')
+        super().__init__('potions/' + color, position, 'health')
         self.color = color

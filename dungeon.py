@@ -52,7 +52,7 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 
@@ -69,7 +69,7 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 
