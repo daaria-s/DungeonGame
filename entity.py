@@ -16,7 +16,7 @@ class Entity:
         self.position = position  # позиция
         self.name = name  # имя
 
-        self.action_points = [max_action_points, max_action_points]  # очки действий [текущие, максимальные]
+        self.action_points = [action_points, max_action_points]  # очки действий [текущие, максимальные]
         self.damage = [min_damage, max_damage]  # урон [минимальный, максимальный]
         self.hit_points = [hit_points, max_hit_points]  # здоровье [текущее, максимальное]
 
@@ -142,6 +142,10 @@ class Player(Entity):
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""
+        if (self.position[1], self.position[0]) == obj.rooms[obj.current_room].exit_:
+            obj.change_room(obj.current_room + 1)
+        elif obj.current_room != 1 and (self.position[1], self.position[0]) == obj.rooms[obj.current_room].enter:
+            obj.change_room(obj.current_room - 1)
         pass
 
     def die(self):

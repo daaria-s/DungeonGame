@@ -2,33 +2,34 @@ from animator import Animator
 import pygame
 from config import *
 import sys
-from config import music
 from functions import *
+
+
+all_sprites = pygame.sprite.Group()
 
 
 class Window:
     """Класс окна"""
 
-    def __init__(self, name, objects, music_name='main', run_music=False):
-        self.name = name  # имя окна
-        self.objects = objects  # объекты в этом окне
-        self.music_name = music_name  # имя музыки, которая должна проигрываться в этом окне
-        self.run_music = run_music  # нужно ли запускать музыку
-        self.first_load = True  # загружается ли окно в первый раз
-
-    def update(self, surf, events):
-        if self.first_load:
-            if self.run_music:
-                music.play_music(self.music_name)
-            self.first_load = False
-
+    def __init__(self, name, objects, music_name='main'):
+        self.name = name
+        self.objects = objects
+        self.music_name = music_name
+        self.important_windows = ['menu', 'game', 'exit']
         self.first_load = True
-        if self.name == 'exit':
-            pygame.quit()
-            sys.exit()
+
+        self.fade_in_counter = 0
+        self.fade_out_counter = 60
+        self.fade_target = None
+
+        self.fader = pygame.Surface(SIZE)
+        self.fader.fill(BLACK)
+
+    def get_event(self, events):
         for event in events:
             if event.type == pygame.QUIT:
-                return 'exit'
+                pygame.quit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 for obj in self.objects:
                     obj.key_down(event.key)
@@ -36,7 +37,11 @@ class Window:
                 for obj in self.objects:
                     target = obj.button_down(event.pos)
                     if target:
-                        return target
+                        if target in self.important_windows and self.name in self.important_windows:
+                            self.fade_target = target
+                            self.fade_out_counter = 0
+                        else:
+                            return target
             elif event.type == pygame.MOUSEBUTTONUP:
                 for obj in self.objects:
                     obj.button_up(event.pos)
@@ -44,10 +49,40 @@ class Window:
                 for obj in self.objects:
                     obj.mouse_motion(event.pos)
 
+        return self.name
+
+    def fade(self, surf, value):
+        self.fader.set_alpha(int(value * 4.25))
+        surf.blit(self.fader, (0, 0))
+
+    def update(self, surf, events):
+        if self.name == 'exit':
+            pygame.quit()
+            sys.exit(1)
+        if self.first_load:
+            # EDIT
+            # fix buttons hover at first load
+            if self.name in self.important_windows:
+                music.play_music(self.music_name)
+                self.fade_in_counter = 60
+            self.first_load = False
+
         for obj in self.objects:
             obj.show(surf)
-        self.first_load = False
-        return self.name
+
+        if self.fade_in_counter != 0:
+            self.fade(surf, self.fade_in_counter)
+            self.fade_in_counter -= 1
+        elif self.fade_out_counter != 60:
+            self.fade(surf, self.fade_out_counter)
+            self.fade_out_counter += 1
+            if self.fade_out_counter == 60:
+                self.first_load = True
+                return self.fade_target
+
+        if self.fade_in_counter != 0 or self.fade_out_counter != 60:
+            return self.name
+        return self.get_event(events)
 
 
 class Element:
@@ -73,7 +108,6 @@ class Element:
         pass
 
     def show(self, surf):
-        """Отображение на поверхности"""
         pass
 
 
@@ -288,7 +322,7 @@ class Inventory(Element):
                                                    *params))  # создаем новый слот
                 counter += 1
 
-        self.active_slot = None  # опустошаем активный слот
+        self.active_slot = None
 
     def show(self, surf):
         """Отображение на поверхности"""
