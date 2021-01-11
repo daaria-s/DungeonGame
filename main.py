@@ -36,6 +36,12 @@ if __name__ == '__main__':
         'load': Window('load', []),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
+        'lose': Window('lose', [
+            Image('lose/background', (0, 0)),
+            Image('lose/lose_text', (196, 200)),
+            Button('lose/menu', (104, 300), 'menu'),
+            Button('lose/new_game', (352, 300), 'game'),
+        ]),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
         'save': Window('save', [])
 

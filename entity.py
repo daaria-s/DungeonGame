@@ -7,7 +7,6 @@ import random
 
 
 class Entity:
-    """Класс существа"""
 
     def __init__(self, position, name, path,
                  hit_points, max_hit_points,
@@ -57,9 +56,9 @@ class Entity:
         }
         if keys[target.name][0](*keys[target.name][1]):  # если взаимодействие прошло успешно
             self.action_points[0] -= 1  # уменьшаем количество очков действий
-            if self.action_points[0] == 0 and config.TURN == 1:  # если закончился ход игрока
+            if self.action_points[0] == 0 and dungeon_.turn == 1:  # если закончился ход игрока
                 self.action_points[0] = self.action_points[1]  # то передаем ход врагам
-                config.TURN = 2
+                dungeon_.turn = 2
             return True  # возвращаем True для индикации успещности взаимодействия
 
     def interaction_entity(self, obj):
@@ -150,7 +149,7 @@ class Player(Entity):
 
     def die(self):
         super().die()
-        config.LOSE = True
+        config.LOSE_COUNTER = 56
 
 
 class Enemy(Entity):

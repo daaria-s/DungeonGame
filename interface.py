@@ -1,5 +1,6 @@
 from animator import Animator
 import pygame
+import config
 from config import *
 import sys
 from functions import *
@@ -49,6 +50,7 @@ class Window:
                 for obj in self.objects:
                     obj.mouse_motion(event.pos)
 
+        self.first_load = False
         return self.name
 
     def fade(self, surf, value):
@@ -82,6 +84,13 @@ class Window:
 
         if self.fade_in_counter != 0 or self.fade_out_counter != 60:
             return self.name
+        if config.LOSE_COUNTER > 0:
+            config.LOSE_COUNTER -= 1
+        if config.LOSE_COUNTER == 1:
+            config.LOSE_COUNTER = 0
+            self.objects[0].new()
+            return 'lose'
+
         return self.get_event(events)
 
 

@@ -60,8 +60,23 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 5, 3)
+        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
         self.current_room = 1
+        self.turn = 1
+
+        self.change_room(1)
+
+    def new(self):
+        self.first = True
+        self.rooms = {}
+        self.enemies = []
+        self.objects = []
+        self.base = []
+        self.entities = []
+
+        self.player = Player((1, 1), 1, 1, 1, 1, 5, 3)
+        self.current_room = 1
+        self.turn = 1
 
         self.change_room(1)
 
@@ -117,40 +132,32 @@ class Dungeon(Element):
             Button('game/panel/save', (500, 10), 'save')
         ]
 
-    def generate_level(self, enter_x, enter_y, exit_x, exit_y, prev_room=None, next_room=None):
-        if not prev_room:
-            prev_room = 0
-            next_room = 2
-        if not next_room:
-            next_room = prev_room + 1
+    def generate_level(self, num):
+        closed_cells = [self.player.position]
+        enter = None
 
-        map = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
-               ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+        if num != 1:
+            enter = self.rooms[num - 1].enter_from_exit()
 
-        if enter_x in (0, 9):
-            map[abs(enter_x - 1)][enter_y] = 'P'
-        else:
-            map[enter_x][abs(enter_y - 1)] = 'P'
+        for i in range(random.randint(3, 5)):
+            x, y = random.randint(2, 9), random.randint(2, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(2, 9), random.randint(2, 8)
+            self.enemies.append(
+                Enemy((x, y), random.choice(['green', 'blue', 'purple']), 2, 2, 1, 1, 3, 2))
+            closed_cells.append((x, y))
 
-        map[enter_x][enter_y] = str(prev_room)
+        for i in range(random.randint(6, 7)):
+            x, y = random.randint(2, 8), random.randint(2, 7)
+            while (x, y) in closed_cells:
+                x, y = random.randint(2, 8), random.randint(2, 7)
+            self.objects.append(Box((x, y)))
+            closed_cells.append((x, y))
 
-        map[exit_x][exit_y] = str(next_room)
+        exit_ = random.choice([(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
-        for i in range(random.randint(3, 4)):
-            x, y = 0, 0
-            while map[x][y] != '.':
-                x, y = random.randint(1, 8), random.randint(1, 9)
-            map[x][y] = 'E'
-
-        return map
+        self.rooms[num] = Room(exit_, self.enemies, self.objects, self.current_room,
+                               enter=enter)
 
     def load_map(self, user_name):
         pass
@@ -229,14 +236,14 @@ class Dungeon(Element):
             res.append(enemy.interaction(self, diff))  # добавляем результат взаимодействия с список
 
         if not any(res):  # если у всех врагов закончились очки действий
-            config.TURN = 1  # передаем ход игроку
+            self.turn = 1  # передаем ход игроку
             for enemy in self.enemies:  # обновляем очки действий у врагов
                 enemy.action_points[0] = enemy.action_points[1]
 
     def show(self, surf):
         """Отображение на поверхность"""
-        if config.TURN == 2:  # если ход врагов
-            self.enemies_move()  # то вызываем функцию их движения
+        if self.turn == 2:
+            self.enemies_move()
 
         surf.blit(self.background, apply((0, 0)))  # отображаем поле
         for entity in self.entities:  # отображаем существ
@@ -268,5 +275,6 @@ class Dungeon(Element):
 
     def key_down(self, button):
         """Нажатие на клавиатуру"""
-        if config.TURN == 1:  # если ход игрока
+        if self.turn == 1:  # если ход игрока
             self.player_move(button)  # то вызываем функцию движения игрока
+
