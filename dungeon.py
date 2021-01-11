@@ -1,15 +1,9 @@
 from objects import *
 from entity import Player, Enemy
-import config
 from functions import *
 import random
 from PIL import Image
 from interface import Panel, Button, Element
-import sqlite3
-
-
-class UnknownMapSymbol(Exception):
-    pass
 
 
 class Room:
@@ -58,8 +52,26 @@ class Dungeon(Element):
         self.base = []
         self.entities = []
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
         self.current_room = 1
+        self.turn = 1
+
+        self.change_room(1)
+
+    def new(self):
+        # EDIT
+        # simple code
+        self.unused_keys = []
+        self.first = True
+        self.rooms = {}
+        self.enemies = []
+        self.objects = []
+        self.base = []
+        self.entities = []
+
+        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
+        self.current_room = 1
+        self.turn = 1
 
         self.change_room(1)
 
@@ -97,18 +109,18 @@ class Dungeon(Element):
         # одно большое изображение поля чтобы потом отображать только его
         for i in range(len(level)):
             for k in range(len(level[i])):
-                if level[i][k] == '.':
-                    self.base.append(Empty((k, i)))
-                    background.paste(empty, (k * TILE, i * TILE))
-                elif level[i][k] == 'W':
+                if level[i][k] == 'W':
                     self.base.append(Wall((k, i)))
                     background.paste(wall, (k * TILE, i * TILE))
+                else:
+                    self.base.append(Empty((k, i)))
+                    background.paste(empty, (k * TILE, i * TILE))
         self.background = pygame.image.fromstring(background.tobytes(),
                                                   background.size,
                                                   background.mode)
 
-        self.top_panel = Panel(self.player, True, 0)  # создаем верхнюю
-        self.bottom_panel = Panel(self.enemies[0], False, 550)  # и нижнюю панели
+        self.top_panel = Panel(self.player, 0)  # создаем верхнюю
+        self.bottom_panel = Panel(None, 550)  # и нижнюю панели
         self.buttons = [  # создаем кнопки
             Button('game/panel/exit', (550, 10), 'menu'),
             Button('game/panel/inventory', (450, 10), 'inventory'),
@@ -192,7 +204,7 @@ class Dungeon(Element):
         if self.player.animator.animation != 'idle':
             return
 
-        self.player.interaction_teleport(self)
+        self.player.interaction_teleport(self) # EDIT
 
         if button not in buttons_keys.keys():
             return  # если нажали на неизвестную кнопку
@@ -228,6 +240,7 @@ class Dungeon(Element):
                 elif enemy_pos[0] != player_pos[0]:
                     diff = (0, -1) if enemy_pos[0] > player_pos[0] else (0, 1)
 
+            # EDIT запирание врагов
             while (
                     enemy_pos[0] + diff[0],
                     enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
@@ -284,4 +297,3 @@ class Dungeon(Element):
         """Нажатие на клавиатуру"""
         if self.turn == 1:  # если ход игрока
             self.player_move(button)  # то вызываем функцию движения игрока
-

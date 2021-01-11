@@ -10,8 +10,6 @@ if __name__ == '__main__':
 
     dungeon = Dungeon()
 
-    # EDIT
-    # fix bug with new play music when you close settings panel
     # Создаем словарь вида {имя окна: класс окна}
     windows = {
         'menu': Window('menu', [
@@ -39,15 +37,15 @@ if __name__ == '__main__':
             Image('load/title', (211, 172)),
             TextBox('load/cell', (119, 263), ''),
             Button('load/load', (139, 350), 'game', {'cycle': True}),
-            # Button('load/cancel', (319, 330), 'game', {'cycle': True}),
+            Button('load/cancel', (319, 350), 'menu', {'cycle': True}),
         ]),
         'exit': Window('exit', []),
         'game': Window('game', [dungeon], music_name='game'),
         'lose': Window('lose', [
             Image('lose/background', (0, 0)),
             Image('lose/lose_text', (196, 200)),
-            Button('lose/menu', (104, 300), 'menu'),
-            Button('lose/new_game', (352, 300), 'game'),
+            Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
+            Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
         ]),
         'inventory': Window('inventory', [Inventory(dungeon.player)]),
         'save': Window('save', [

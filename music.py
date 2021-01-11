@@ -1,8 +1,6 @@
 import pygame
 
 
-# EDIT
-# edit sounds and music files
 class Music:
     """Класс музыки"""
 

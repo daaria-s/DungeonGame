@@ -1,10 +1,7 @@
-import pygame
 import config
-from config import *
 from animator import Animator
 from functions import *
 import random
-from objects import Key, Potion
 
 
 class Entity:
@@ -22,6 +19,7 @@ class Entity:
 
         self.alive = True
         self.animator = Animator('Sprites/' + path)
+        self.inventory = []
 
     def show(self, surf):
         """Отображение на поверхности"""
@@ -54,7 +52,8 @@ class Entity:
             'wall': [lambda: False, []],
             'box': [self.interaction_box, [dungeon_, movement]],
             'chest': [self.interaction_chest, [target]],
-            'teleport': [self.interaction_teleport, [target]]
+            'teleport': [self.interaction_teleport, [target]],
+            'door': [self.interaction_door, [target]]
         }
         if keys[target.name][0](*keys[target.name][1]):  # если взаимодействие прошло успешно
             self.action_points[0] -= 1  # уменьшаем количество очков действий
@@ -92,6 +91,9 @@ class Entity:
         """Взаимодействие с телепортом"""
         pass
 
+    def interaction_door(self, obj):
+        pass
+
     def get_hit(self, damage):
         """Получение урона"""
         # отнимаем случайное количество жизней в рамках урона
@@ -120,7 +122,6 @@ class Player(Entity):
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
-        self.inventory = []
 
     def new_inventory(self, object):
         if object == 'health' and self.hit_points[0] < self.hit_points[1]:
@@ -151,12 +152,12 @@ class Player(Entity):
 
     def interaction_door(self, obj):
         self.animator.start('attack_' + self.get_direction(obj))
-        res = obj.touch()
-        if res == '__empty__':
-            self.interaction_empty(obj)
-            return True
+        res = obj.touch(obj.color + '_key' in self.inventory)
         if obj.color + '_key' in self.inventory:
             self.inventory.remove(obj.color + '_key')
+        if res == '__empty__':
+            self.interaction_empty(obj)
+        return True
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""
@@ -167,7 +168,7 @@ class Player(Entity):
 
     def die(self):
         super().die()
-        config.LOSE_COUNTER = 56
+        config.LOSE = True
 
 
 class Enemy(Entity):

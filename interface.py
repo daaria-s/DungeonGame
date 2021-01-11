@@ -1,12 +1,7 @@
 from animator import Animator
-import pygame
 import config
-from config import *
 import sys
 from functions import *
-
-
-all_sprites = pygame.sprite.Group()
 
 
 class Window:
@@ -16,11 +11,11 @@ class Window:
         self.name = name
         self.objects = objects
         self.music_name = music_name
-        self.important_windows = ['menu', 'game', 'exit']
+        self.important_windows = ['menu', 'game', 'exit', 'lose']
         self.first_load = True
 
         self.fade_in_counter = 0
-        self.fade_out_counter = 60
+        self.fade_out_counter = 61
         self.fade_target = None
 
         self.fader = pygame.Surface(SIZE)
@@ -61,6 +56,10 @@ class Window:
         if self.name == 'exit':
             pygame.quit()
             sys.exit(1)
+        if config.LOSE:
+            self.fade_out_counter = 0
+            self.fade_target = 'lose'
+            config.LOSE = False
         if self.first_load:
             # EDIT
             # fix buttons hover at first load
@@ -75,22 +74,17 @@ class Window:
         if self.fade_in_counter != 0:
             self.fade(surf, self.fade_in_counter)
             self.fade_in_counter -= 1
-        elif self.fade_out_counter != 60:
+        elif self.fade_out_counter != 61:
             self.fade(surf, self.fade_out_counter)
             self.fade_out_counter += 1
-            if self.fade_out_counter == 60:
+            if self.fade_out_counter == 61:
                 self.first_load = True
+                if self.fade_target == 'lose':
+                    self.objects[0].new()  # обновляем подземелье
                 return self.fade_target
 
-        if self.fade_in_counter != 0 or self.fade_out_counter != 60:
+        if self.fade_in_counter != 0 or self.fade_out_counter != 61:
             return self.name
-        if config.LOSE_COUNTER > 0:
-            config.LOSE_COUNTER -= 1
-        if config.LOSE_COUNTER == 1:
-            config.LOSE_COUNTER = 0
-            self.objects[0].new()
-            return 'lose'
-
         return self.get_event(events)
 
 
@@ -117,6 +111,7 @@ class Element:
         pass
 
     def show(self, surf):
+        """Отображение на поверхность"""
         pass
 
 
@@ -241,33 +236,38 @@ class Text(Element):
 class Panel(Element):
     """Класс панели"""
 
-    def __init__(self, target, active, yShift):
+    def __init__(self, target, y_shift):
         super().__init__()
-        self.background = Image('game/panel/background', (0, yShift + 0))
-        self.active = active
+        self.background = Image('game/panel/background', (0, y_shift + 0))
         self.target = target
+        self.y_shift = y_shift
         self.objects = [
-            Image('game/panel/health', (50, yShift + 10)),
-            Text((90, yShift + 13), HP_COLOR, self.target, 'hit_points'),
-            Image('game/panel/damage', (170, yShift + 10)),
-            Text((210, yShift + 13), DAMAGE_COLOR, self.target, 'damage'),
-            Image('game/panel/action_points', (290, yShift + 10)),
-            Text((330, yShift + 13), ACTION_POINTS_COLOR, self.target, 'action_points'),
+            Image('game/panel/health', (50, y_shift + 10)),
+            Text((90, y_shift + 13), HP_COLOR, target, 'hit_points'),
+            Image('game/panel/damage', (170, y_shift + 10)),
+            Text((210, y_shift + 13), DAMAGE_COLOR, target, 'damage'),
+            Image('game/panel/action_points', (290, y_shift + 10)),
+            Text((330, y_shift + 13), ACTION_POINTS_COLOR, target, 'action_points'),
         ]
 
     def show(self, surf):
         """Отображение на поверхности"""
         self.background.show(surf)
-        if self.active:
+        self.target = self.target if self.target and self.target.alive else None
+        if self.target:
             for obj in self.objects:
                 obj.show(surf)
 
     def change_target(self, new_target):
-        if new_target:
-            self.target = new_target
-            self.active = True
-        else:
-            self.active = False
+        self.target = new_target
+        self.objects = [
+            Image('game/panel/health', (50, self.y_shift + 10)),
+            Text((90, self.y_shift + 13), HP_COLOR, new_target, 'hit_points'),
+            Image('game/panel/damage', (170, self.y_shift + 10)),
+            Text((210, self.y_shift + 13), DAMAGE_COLOR, new_target, 'damage'),
+            Image('game/panel/action_points', (290, self.y_shift + 10)),
+            Text((330, self.y_shift + 13), ACTION_POINTS_COLOR, new_target, 'action_points'),
+        ]
 
 
 class InventorySlot(Element):
@@ -307,7 +307,9 @@ class Inventory(Element):
         # словарь вида {названия содержимого в инвентаре: [картинка, описание]}
         self.image_keys = {
             'red_key': (load_image('Sprites/inventory/red_key.png'), 'This key open red doors'),
-            'health': (load_image('Sprites/inventory/green_key.png'), 'This key open red doors')
+            'green_key': (load_image('Sprites/inventory/green_key.png'), 'This key open green doors'),
+            'blue_key': (load_image('Sprites/inventory/blue_key.png'), 'This key open blue doors'),
+            'health': (load_image('Sprites/inventory/green_key.png'), 'This potion heals you')
         }
 
         self.target = target  # в какое окно мы перейдем, при выходе из инвентаря
@@ -332,8 +334,6 @@ class Inventory(Element):
                                                    *params))
                 counter += 1
 
-        self.active_slot = None
-
     def show(self, surf):
         """Отображение на поверхности"""
         self.update()  # обновляем слоты
@@ -355,3 +355,30 @@ class Inventory(Element):
                     self.active_slot = self.slots[i][k]  # то он становится активным
                     return
         self.active_slot = None  # опустошаем активный слот
+
+
+class TextBox(AnimatedElement):
+    def __init__(self, name, position, function):
+        super().__init__('Sprites/' + name, position)
+        self.input_ = Text((position[0] + 15, position[1] + 15), DESCRIPTION_COLOR, text='')
+        self.input_.font = pygame.font.Font(None, 30)  # pygame.font.Font('C:\Windows\Fonts\Arial.ttf', 30)
+
+    def show(self, surf):
+        super().show(surf)
+        self.input_.show(surf)
+
+
+class InputBox(TextBox):
+    def __init__(self, name, position, function):
+        super().__init__(name, position, function)
+
+    def key_down(self, key):
+        if 48 <= key <= 57 or 97 <= key <= 122:
+            if len(self.input_.text) < 14:
+                self.input_.text += str(chr(key))
+        elif key == 8:
+            self.input_.text = self.input_.text[:-1]
+
+    def show(self, surf):
+        super().show(surf)
+        self.input_.show(surf)

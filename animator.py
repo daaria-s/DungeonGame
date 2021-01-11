@@ -1,7 +1,6 @@
 import os
 from functions import *
 from config import *
-import config
 
 
 class Animator:
