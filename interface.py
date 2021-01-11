@@ -61,8 +61,6 @@ class Window:
             self.fade_target = 'lose'
             config.LOSE = False
         if self.first_load:
-            # EDIT
-            # fix buttons hover at first load
             if self.name in self.important_windows:
                 music.play_music(self.music_name)
                 self.fade_in_counter = 60
@@ -141,6 +139,7 @@ class Button(AnimatedElement):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             music.play_sound('button_down')  # проигрываем звук нажатия
+            self.animator.start('idle')
             return self.target  # возвращаем имя окна, в которое нужно перейти
 
     def mouse_motion(self, mouse_pos):

@@ -64,7 +64,6 @@ class Entity:
 
     def interaction_entity(self, obj):
         """Взаимодействие с существами"""
-        # EDIT
         if obj.hit_points[0] <= 0:  # если существо мертво, то просто перемещаемся в нужную точу
             self.animator.start('move_' + self.get_direction(obj))
             self.position = obj.position
