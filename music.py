@@ -1,43 +1,39 @@
-import pygame as pg
+import pygame
 
 
 class Music:
+    """Класс музыки"""
+
     def __init__(self):
-        pg.init()
-        self.sounds = []
-        self.game_sound = pg.mixer.Sound('Sounds/tuk.mp3')
-        self.sounds.append(self.game_sound)
-        self.fail_sound = None
-        self.win_sound = None
-        self.nextRoom_sound = None
+        pygame.init()
+        self.sounds = {
+            'hit': pygame.mixer.Sound('Sounds/tuk.mp3'),
+            'button_down': pygame.mixer.Sound('Sounds/tuk.mp3'),
+            'next_window':  pygame.mixer.Sound('Sounds/WindowChange.mp3'),
+            'defeat': pygame.mixer.Sound('Sounds/Defeat.mp3'),
+            'fail': pygame.mixer.Sound('Sounds/Fail.mp3')
+        }
+        self.musics = {
+            'main': 'Sounds/menu_music1.mp3',
+            'game': 'Sounds/game_music1.mp3',
+            'defeat': 'Sounds/Defeat.mp3',
 
-    def update(self, event):
-            if event.type == pg.KEYUP:
-                if event.key == pg.K_1:
-                    pg.mixer.music.pause()
-                elif event.key == pg.K_2:
-                    pg.mixer.music.unpause()
-                    pg.mixer.music.set_volume(0.5)
-                elif event.key == pg.K_3:
-                    pg.mixer.music.unpause()
-                    pg.mixer.music.set_volume(1)
-            pg.time.delay(20)
+        }
 
-    def game_music(self):
-        pg.mixer.music.load('Sounds/melody.mp3')
-        pg.mixer.music.play()
+    def play_sound(self, name):
+        """Проиграть звук по имени"""
+        self.sounds[name].play()
 
-    def menu_music(self):
-        pg.mixer.music.load('Sounds/menu_music.mp3')
-        pg.mixer.music.play()
+    def play_music(self, name):
+        """Включить музыку по имени"""
+        pygame.mixer.music.load(self.musics[name])
+        pygame.mixer.music.play()
 
-    def settings(self, music_pos, sounds_pos):
-        pg.mixer.music.set_volume((music_pos - 190) / 160)
-        for sound in self.sounds:
-            sound.set_volume((sounds_pos - 190) / 160)
+    def set_music_volume(self, volume):
+        """Установить громкость музыки"""
+        pygame.mixer.music.set_volume(volume)
 
-    def move(self):
-        self.game_sound.play()
-
-    def next_room(self):
-        self.nextRoom_sound.play()
+    def set_sounds_volume(self, volume):
+        """Установить громкость звуков"""
+        for sound in self.sounds.values():
+            sound.set_volume(volume)

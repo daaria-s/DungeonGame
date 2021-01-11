@@ -1,132 +1,114 @@
-import pygame
-import config
-import os
-import sys
 from animator import Animator
 from functions import *
-
-buttons = pygame.sprite.Group()
-background = pygame.sprite.Group()
-settings = pygame.sprite.Group()
-sliders = pygame.sprite.Group()
 
 
 class Object:
 
     def __init__(self, path, position, name):
-        self.position = position
-        self.name = name
-        self.animator = Animator('Sprites/' + path, True)
+        self.position = position  # позиция
+        self.name = name  # имя объекта
+        self.animator = Animator('Sprites/' + path)  # аниматор
 
-    def show(self):
-        return self.animator.next_()[0], apply((self.position[0] * TILE,
-                                                self.position[1] * TILE))
+    def show(self, surf):
+        """Отображение объекта"""
+        image, shift = self.animator.next_()
+        # получаем следущий кадр анимации и смещение
+        # отображаем его на поверхность с учетом смещения
+        surf.blit(image, apply((self.position[0] * TILE + shift[0],
+                                self.position[1] * TILE + shift[1])))
 
 
 class Wall(Object):
+    """Класс стены"""
 
     def __init__(self, position):
         super().__init__('wall', position, 'wall')
 
 
 class Empty(Object):
+    """Класс пустой клетки"""
 
     def __init__(self, position):
         super().__init__('ground', position, 'empty')
 
 
 class Teleport(Object):
+    """Класс телепорта"""
 
     def __init__(self, position, number):
         super().__init__('ground', position, 'teleport')
-        self.number = number
+        self.number = number  # номер комнаты, в которую ведет этот телепорт
 
 
 class Box(Object):
+    """Класс коробки"""
 
     def __init__(self, position):
-        super().__init__('ground', position, 'box')  # поставить правильный спрайт
+        super().__init__('box', position, 'box')
+
+    def move(self, new_position, direction):
+        """Движение в новую позицию"""
+        self.position = new_position  # меняем позицию
+        self.animator.start('move_' + direction)  # начинаем анимацию движения
 
 
 class Chest(Object):
 
-    def __init__(self, position):
-        super().__init__('Sprites/ground.png', position, 'chest')  # поставить правильный спрайт
+    def __init__(self, position, object_, color=None):
+        super().__init__('chest', position, 'chest')
+        if object_ == 'key':
+            self.inside = Key(self.position, color)
+        elif object_ == 'potion':
+            self.inside = Potion(self.position, 'green')
+        self.stage = 0
 
-
-def load_image(name, colorkey=None):
-    # EDIT
-    # Same function exist in functions.py
-    fullname = os.path.join('Sprites', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    return image
-
-
-class Mattone(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        image = load_image('mattone.png', -1)
-        super(Mattone, self).__init__()
-        self.image = image
-        self.rect = self.image.get_rect()
-        self.x, self.y = x, y
-
-
-class Button(pygame.sprite.Sprite):
-
-    def __init__(self, image, x, y, image2=''):
-        super().__init__(buttons)
-
-        self.image1 = load_image(image)
-        if image2:
-            self.image2 = load_image(image2)
-
-        self.image = self.image1
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
-
-    def pressed(self, x, y, function):
-        if self.rect[0] <= x <= self.rect[2] + self.rect[0] and self.rect[1] <= y <= self.rect[3] + self.rect[1]:
-            function()
-
-    def motion(self, x, y):
-        if self.rect[0] <= x <= self.rect[2] + self.rect[0] and self.rect[1] <= y <= self.rect[3] + self.rect[1]:
-            self.image = self.image2
+    def touch(self):
+        if self.stage == 0:
+            self.animator.start('die')
+            self.inside.animator.start('appearance')
+            self.stage += 1
+        elif self.stage == 1:
+            self.inside.animator.start('die')
+            self.stage += 1
+            return self.inside.name
         else:
-            self.image = self.image1
+            return '__empty__'
+
+    def show(self, surf):
+        image, shift = self.inside.animator.next_()
+        surf.blit(image, apply((self.position[0] * TILE + shift[0],
+                                self.position[1] * TILE + shift[1])))
+        image, shift = self.animator.next_()
+        surf.blit(image, apply((self.position[0] * TILE + shift[0],
+                                self.position[1] * TILE + shift[1])))
 
 
-class Background(pygame.sprite.Sprite):
-    def __init__(self, image_file):
-        pygame.sprite.Sprite.__init__(self, background)  # call Sprite initializer
-        self.image = load_image(image_file)
-        self.rect = self.image.get_rect()
+class Door(Object):
+
+    def __init__(self, position, color):
+        super().__init__('doors/' + color, position, 'door')
+        self.color = color
+        self.inside = None
+        self.stage = 0
+
+    def touch(self, has_key):
+        if self.stage == 0:
+            if has_key:
+                self.animator.start('die')
+                self.stage += 1
+        else:
+            return '__empty__'
 
 
-class Object(pygame.sprite.Sprite):
-    def __init__(self, x, y, image, groups=None):
-        pygame.sprite.Sprite.__init__(self, settings)
-        self.image = load_image(image, -1)
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
+class Key(Object):
+    """Класс ключа"""
+
+    def __init__(self, position, color):
+        super().__init__('keys/' + color, position, color + '_key')
+        self.color = color  # цвет ключа
 
 
-class Slider(pygame.sprite.Sprite):
-    def __init__(self, x, y, image, ):
-        pygame.sprite.Sprite.__init__(self, sliders)
-        self.image = load_image(image, -1)
-        self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
-        self.pressed = False
-
-    def update(self, x, y, event):
-        if event.type == pygame.MOUSEBUTTONUP:
-            self.pressed = False
-        elif event.type == pygame.MOUSEBUTTONDOWN and self.rect.x < x < self.rect.x + 27 and self.rect.y < y < self.rect.y + 27:
-            self.pressed = True
-        elif event.type == pygame.MOUSEMOTION and self.pressed:
-            if 190 < x < 350:
-                self.rect.x = x
+class Potion(Object):
+    def __init__(self, position, color):
+        super().__init__('potions/' + color, position, 'health')
+        self.color = color
