@@ -22,7 +22,7 @@ class Animator:
         self.cycle = options.get('cycle', False) if options else False
         # цикличность анимации
 
-        self.shift = (0, 0)  # смещение спрайта при некоторых анимации
+        self.shift = (0, 0)  # смещение спрайта при некоторых анимациях
 
     def next_(self):
         """Следущий кадр анимации"""
