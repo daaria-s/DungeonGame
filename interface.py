@@ -61,8 +61,9 @@ class Window:
             self.fade_target = 'lose'
             config.LOSE = False
         if self.first_load:
-            if self.name in self.important_windows:
+            if self.music_name != music.current_music:
                 music.play_music(self.music_name)
+            if self.name in self.important_windows:
                 self.fade_in_counter = 60
             self.first_load = False
 

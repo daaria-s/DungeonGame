@@ -17,8 +17,8 @@ class Music:
             'main': 'Sounds/menu_music1.mp3',
             'game': 'Sounds/game_music1.mp3',
             'defeat': 'Sounds/Defeat.mp3',
-
         }
+        self.current_music = None
 
     def play_sound(self, name):
         """Проиграть звук по имени"""
@@ -28,6 +28,7 @@ class Music:
         """Включить музыку по имени"""
         pygame.mixer.music.load(self.musics[name])
         pygame.mixer.music.play()
+        self.current_music = name
 
     def set_music_volume(self, volume):
         """Установить громкость музыки"""
