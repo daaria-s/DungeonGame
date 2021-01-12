@@ -21,12 +21,12 @@ class Room:
         self.objects = objects
         self.opened = -1
 
-    def enter_from_exit(self):
+    def enter_from_exit(self):  # трансформирует выход во вход для след двери
         if self.exit_[0] == 9:
             return 0, self.exit_[1]
         return self.exit_[0], 0
 
-    def structure(self):
+    def structure(self):  # возвращает карту в виде списка
         map_ = [['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W'],
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
@@ -71,8 +71,6 @@ class Dungeon(Element):
         self.change_room(1)
 
     def new(self):
-        # EDIT
-        # simple code
         self.unused_keys = []
         self.rooms = {}
         self.enemies = []
@@ -91,21 +89,23 @@ class Dungeon(Element):
 
         self.change_room(1)
 
-    def change_room(self, num):
+    def change_room(self, num):  # смена комнаты, в которой находится игрок
         self.enemies = []
         self.objects = []
         self.base = []
 
         if num not in self.rooms.keys():
+            # если следующей комнаты не существует
             self.generate_level(num)
         else:
             self.enemies = self.rooms[num].enemies
             self.objects = self.rooms[num].objects
 
         if self.first:
+            # если запустили первый раз
             self.player.position = (1, 1)
             self.first = False
-        elif num > self.current_room:
+        elif num > self.current_room:  # смотрим, откуда пришел игрок
             self.player.position = self.rooms[num].enter[1], \
                                    self.rooms[num].enter[0]
         else:
@@ -116,7 +116,7 @@ class Dungeon(Element):
         self.entities = [self.player, *self.enemies]
         self.load_room(self.current_room)
 
-    def load_room(self, num_of_room):
+    def load_room(self, num_of_room):  # загрузка комнаты на экран
         level = self.rooms[num_of_room].structure()
         empty = Image.open('Sprites/ground/idle/00.png')
         wall = Image.open('Sprites/wall/idle/00.png')
@@ -351,8 +351,7 @@ class Dungeon(Element):
                 self.con.commit()
                 self.save_room(n)
 
-    def save(self, user_name):
-        print(config.USERS)
+    def save(self, user_name):  # функция сохранения базы
         cur = self.con.cursor()
         self.user_name = user_name if not self.user_name else self.user_name
         config.USERS.append(self.user_name)

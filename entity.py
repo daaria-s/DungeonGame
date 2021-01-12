@@ -148,6 +148,7 @@ class Player(Entity):
             return True
 
     def interaction_chest(self, obj):
+        """Взаимодействие с сундуком"""
         self.animator.start('attack_' + self.get_direction(obj))
         res = obj.touch()
         if res == '__empty__':
@@ -168,7 +169,7 @@ class Player(Entity):
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""
-        print(self.position, obj.rooms[obj.current_room].exit_)
+        # если игрок находится на входе или выходе
         if (self.position[1], self.position[0]) ==\
                 obj.rooms[obj.current_room].exit_:
             obj.change_room(obj.current_room + 1)
