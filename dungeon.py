@@ -410,19 +410,14 @@ class Dungeon(Element):
         if isinstance(obj, Enemy) and obj.alive:  # если нажали на врага
             self.bottom_panel.change_target(obj)  # меняем цель нижней панели
         else:
-            # EDIT
-            # This doesn't work
             self.bottom_panel.change_target(None)
 
         for button in self.buttons:  # проверяем нажатие на кнопки
-            res = button.button_down(mouse_pos)
-            if res:
-                return res
+            button.button_down(mouse_pos)
 
-    def key_down(self, button):
+    def key_down(self, key):
         """Нажатие на клавиатуру"""
-        if button == pygame.K_0:
-            USER_NAME = input()
-            self.save(USER_NAME)
+        for button in self.buttons:
+            button.key_down(key)
         if self.turn == 1:  # если ход игрока
-            self.player_move(button)  # то вызываем функцию движения игрока
+            self.player_move(key)  # то вызываем функцию движения игрока

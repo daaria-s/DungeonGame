@@ -54,7 +54,7 @@ class Window:
                 if config.FADE_COUNTER == 59:
                     if config.CURRENT_WINDOW == 'game' and\
                             (config.NEXT_WINDOW in ['menu', 'lose']):
-                        self.objects[0].new()
+                        self.objects[0].new()  # обновляем подземелье
                     config.CURRENT_WINDOW, config.NEXT_WINDOW =\
                         config.NEXT_WINDOW, config.CURRENT_WINDOW
                 elif config.FADE_COUNTER == 58:  # first window load
@@ -116,17 +116,19 @@ class Button(AnimatedElement):
 
     def __init__(self, name, position, target, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
+        self.hotkey = name.split('/')[-1][0]
         self.target = target  # имя окна, в которое мы перейдем,
         # если нажмем на эту кнопку
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         # если нажали на кнопку
-        if self.rect.collidepoint(mouse_pos) and self.target:
+        if self.rect.collidepoint(mouse_pos):
             music.play_sound('button_down')  # проигрываем звук нажатия
-            self.animator.start('idle')
-            # устанавливаем имя окна, в которое нужно перейти
-            config.NEXT_WINDOW = self.target
+            if self.target:
+                self.animator.start('idle')
+                # устанавливаем имя окна, в которое нужно перейти
+                config.NEXT_WINDOW = self.target
 
     def mouse_motion(self, mouse_pos):
         """Функция движения мыши"""
@@ -136,6 +138,14 @@ class Button(AnimatedElement):
         else:
             self.animator.start('idle')  # иначе включаем анимацию покоя
 
+    def key_down(self, key):
+        # если нажали на хоткей
+        if pygame.key.name(key) == self.hotkey:
+            music.play_sound('button_down')  # проигрываем звук нажатия
+            # устанавливаем имя окна, в которое нужно перейти
+            if self.target:
+                config.NEXT_WINDOW = self.target
+
 
 class Image(AnimatedElement):
     """Класс изображения"""
@@ -144,13 +154,12 @@ class Image(AnimatedElement):
         super().__init__('Sprites/' + name, position, animator_options)
 
 
-class AntiButton(AnimatedElement):
+class AntiButton(Button):
     """Класс анти-кнопки"""
 
-    def __init__(self, name, position, target):
-        super().__init__('Sprites/' + name, position)
-        self.target = target  # имя окна, в которое мы перейдем,
-        # если нажмем на вне этой кнопки
+    def __init__(self, name, position, target, animator_options=None):
+        super().__init__(name, position, target, animator_options)
+        self.hotkey = 'space'  # хоткей
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
@@ -224,10 +233,8 @@ class Text(Element):
                                      self.color),
                     self.position)
             else:
-                surf.blit(
-                    self.font.render(value, True,
-                                     self.color),
-                    self.position)
+                surf.blit(self.font.render(value, True, self.color),
+                          self.position)
         elif self.text:  # если есть статичный текст, то отбражаем его
             surf.blit(self.font.render(str(self.text), True, self.color),
                       self.position)
@@ -309,8 +316,8 @@ class Inventory(Element):
 
     def __init__(self, target):
         super().__init__()
-        self.base = AntiButton('game/inventory', (97, 97),
-                               'game')  # изображения инвентаря
+        # изображение инвентаря
+        self.base = AntiButton('game/inventory', (97, 97), 'game')
 
         # словарь вида {названия содержимого в инвентаре: [картинка, описание]}
         self.image_keys = {
@@ -373,6 +380,9 @@ class Inventory(Element):
                     return
         self.active_slot = None  # опустошаем активный слот
 
+    def key_down(self, key):
+        self.base.key_down(key)
+
 
 class InputBox(AnimatedElement):
     def __init__(self, name, position, function):
@@ -396,6 +406,7 @@ class Arrow(Button):
     def __init__(self, name, position, function, animator_options=None):
         super().__init__(name, position, None, animator_options)
         self.function = function  # функция, которую надо выполнить при нажатии
+        self.hotkey = name.split('/')[-1]
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
@@ -408,8 +419,8 @@ class Arrow(Button):
 class SaveButton(Button):
     def __init__(self, name, position, target, obj, animator_options=None):
         super().__init__(name, position, target, animator_options)
+        self.hotkey = 'return'  # у кнопки enter имя return
         self.obj = obj  # объект подземелья
-        self.target = target
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
@@ -423,7 +434,6 @@ class LoadButton(Button):
     def __init__(self, name, position, target, obj, animator_options=None):
         super().__init__(name, position, target, animator_options)
         self.obj = obj  # объект подземелья
-        self.target = target
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""

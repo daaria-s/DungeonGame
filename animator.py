@@ -48,6 +48,9 @@ class Animator:
 
     def start(self, name):
         """Начать новую анимацию"""
+        if name not in self.animations.keys():
+            return  # если такой анимации не существует
+
         self.animation = name  # меняем имя анимации
 
         # для некоторых анимаций необходимо смещение спрайта,
