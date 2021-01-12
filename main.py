@@ -70,6 +70,5 @@ if __name__ == '__main__':
         # обновляем окно и делаем отрисовку
         # в зависимости от произошедших событий
         windows[config.CURRENT_WINDOW].update(screen, pygame.event.get())
-        # print(config.CURRENT_WINDOW, config.NEXT_WINDOW, config.FADE_COUNTER)
         pygame.display.flip()  # обновление экрана
         clock.tick(FPS)  # задержка

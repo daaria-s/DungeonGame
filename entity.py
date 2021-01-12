@@ -50,16 +50,15 @@ class Entity(GameObject):
             'teleport': [self.interaction_teleport, [target]],
             'door': [self.interaction_door, [target]]
         }
-        if keys[target.name][0](
-                *keys[target.name][1]):  # если взаимодействие прошло успешно
+        # если взаимодействие прошло успешно
+        if keys[target.name][0](*keys[target.name][1]):
             self.action_points[0] -= 1  # уменьшаем количество очков действий
-            if self.action_points[0] == 0 and\
-                    dungeon_.turn == 1:  # если закончился ход игрока
-                self.action_points[0] = self.action_points[
-                    1]  # то передаем ход врагам
-                dungeon_.turn = 2
-            return True
+            # если закончился ход игрока
+            if self.action_points[0] == 0 and dungeon_.turn == 1:
+                self.action_points[0] = self.action_points[1]
+                dungeon_.turn = 2  # то передаем ход врагам
             # возвращаем True для индикации успещности взаимодействия
+            return True
 
     def interaction_entity(self, obj):
         """Взаимодействие с существами"""
@@ -161,15 +160,15 @@ class Player(Entity):
             self.interaction_empty(obj)
         return True
 
-    def interaction_teleport(self, obj):
+    def interaction_teleport(self, dungeon_):
         """Взаимодействие с телепортом"""
         if (self.position[1], self.position[0]) ==\
-                obj.rooms[obj.current_room].exit_:
-            obj.change_room(obj.current_room + 1)
-        elif obj.current_room != 1 and \
+                dungeon_.rooms[dungeon_.current_room].exit_:
+            dungeon_.change_room(dungeon_.current_room + 1)
+        elif dungeon_.current_room != 1 and \
                 (self.position[1], self.position[0]) == \
-                obj.rooms[obj.current_room].enter:
-            obj.change_room(obj.current_room - 1)
+                dungeon_.rooms[dungeon_.current_room].enter:
+            dungeon_.change_room(dungeon_.current_room - 1)
 
     def die(self):
         super().die()

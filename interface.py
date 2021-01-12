@@ -185,17 +185,18 @@ class Slider(AnimatedElement):
         if self.capture:  # если слайдер зажат
             # то двигаем его, не выходя за границы
             if self.borders[0] <= mouse_pos[0] <= self.borders[1]:
-                x = mouse_pos[0]
+                x_pos = mouse_pos[0]
             elif mouse_pos[0] < self.borders[0]:
-                x = self.borders[0]
+                x_pos = self.borders[0]
             elif mouse_pos[0] > self.borders[1]:
-                x = self.borders[1]
-            self.position = (x, self.position[1])  # меняем позицию
+                x_pos = self.borders[1]
+            self.position = (x_pos, self.position[1])  # меняем позицию
             self.rect = self.animator.next_()[0].get_rect(
                 topleft=self.position)  # и прямоугольник
             # вызываем функцию, привязанную к изменению значения слайдера
-            getattr(music, self.function)(
-                (x - self.borders[0]) / (self.borders[1] - self.borders[0]))
+            value = (x_pos - self.borders[0]) / (self.borders[1] -
+                                                 self.borders[0])
+            getattr(music, self.function)(value)
 
 
 class Text(Element):

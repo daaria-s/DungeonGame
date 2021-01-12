@@ -60,15 +60,13 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 
         self.change_room(1)
 
     def new(self):
-        # EDIT
-        # simple code
         self.unused_keys = []
         self.rooms = {}
         self.enemies = []
@@ -81,7 +79,7 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 
@@ -150,39 +148,39 @@ class Dungeon(Element):
 
         num1, num2 = (2, 4) if num < 4 else (3, 5)
         for i in range(random.randint(num1, num2)):
-            x, y = random.randint(2, 9), random.randint(2, 8)
-            while (x, y) in closed_cells:
-                x, y = random.randint(2, 9), random.randint(2, 8)
+            x_pos, y_pos = random.randint(2, 9), random.randint(2, 8)
+            while (x_pos, y_pos) in closed_cells:
+                x_pos, y_pos = random.randint(2, 9), random.randint(2, 8)
             self.enemies.append(
-                Enemy((x, y),
+                Enemy((x_pos, y_pos),
                       random.choice(['green', 'blue', 'purple', 'red']), 2, 2,
                       1, 1, 2, 2))
-            closed_cells.append((x, y))
+            closed_cells.append((x_pos, y_pos))
 
         for i in range(random.randint(6, 7)):
-            x, y = random.randint(2, 8), random.randint(2, 7)
-            while (x, y) in closed_cells:
-                x, y = random.randint(2, 8), random.randint(2, 7)
-            self.objects.append(Box((x, y)))
-            closed_cells.append((x, y))
+            x_pos, y_pos = random.randint(2, 8), random.randint(2, 7)
+            while (x_pos, y_pos) in closed_cells:
+                x_pos, y_pos = random.randint(2, 8), random.randint(2, 7)
+            self.objects.append(Box((x_pos, y_pos)))
+            closed_cells.append((x_pos, y_pos))
 
         a, b = (0, 2)
         for i in range(random.randint(a, b)):
-            x, y = random.randint(1, 9), random.randint(2, 8)
-            while (x, y) in closed_cells:
-                x, y = random.randint(1, 9), random.randint(2, 8)
-            self.objects.append(Chest((x, y), 'potion'))
-            closed_cells.append((x, y))
+            x_pos, y_pos = random.randint(1, 9), random.randint(2, 8)
+            while (x_pos, y_pos) in closed_cells:
+                x_pos, y_pos = random.randint(1, 9), random.randint(2, 8)
+            self.objects.append(Chest((x_pos, y_pos), 'potion'))
+            closed_cells.append((x_pos, y_pos))
         exit_ = random.choice(
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
             door_color = random.choice(['red', 'blue'])
 
-            x, y = random.randint(1, 9), random.randint(1, 8)
-            while (x, y) in closed_cells:
-                x, y = random.randint(2, 9), random.randint(2, 8)
-            self.objects.append(Chest((x, y), 'key', door_color))
+            x_pos, y_pos = random.randint(1, 9), random.randint(1, 8)
+            while (x_pos, y_pos) in closed_cells:
+                x_pos, y_pos = random.randint(2, 9), random.randint(2, 8)
+            self.objects.append(Chest((x_pos, y_pos), 'key', door_color))
             self.unused_keys.append(door_color)
 
         if not random.randint(0, 2) and self.unused_keys:
@@ -234,7 +232,7 @@ class Dungeon(Element):
         pass
 
     def save(self, user_name):
-        con = sqlite3.connect('dungeonBase.db')
+        con = sqlite3.connect(DATABASE_NAME)
         cur = con.cursor()
         if (user_name,) in cur.execute("""SELECT user_name 
         FROM users""").fetchall():
@@ -267,7 +265,7 @@ class Dungeon(Element):
                     values({n}, {room.enter[0]}, {room.enter[1]}, 
                     {room.exit_[0]}, {room.exit_[1]}, '{user_name}')""")
                 con.commit()
-                id = cur.execute(f"""SELECT id FROM rooms 
+                id_ = cur.execute(f"""SELECT id FROM rooms 
                     WHERE user = '{user_name}' 
                     AND number = {n}""").fetchone()[0]
                 for enemy in room.enemies:
@@ -279,7 +277,7 @@ class Dungeon(Element):
                         values({enemy.hit_points[0]}, {enemy.hit_points[1]},
                         {enemy.action_points[0]}, {enemy.action_points[1]},
                         {enemy.damage[0]}, {enemy.damage[1]}, 
-                        {enemy.position[0]}, {enemy.position[1]}, {id}, 
+                        {enemy.position[0]}, {enemy.position[1]}, {id_}, 
                         '{enemy.color}')""")
 
                 for obj in room.objects:
@@ -287,28 +285,24 @@ class Dungeon(Element):
                         cur.execute(f"""INSERT INTO objects(type, posX, posY, 
                         room_id) 
                         values(1, {obj.position[0]}, 
-                        {obj.position[1]}, {id})""")
+                        {obj.position[1]}, {id_})""")
                     elif obj.name == 'door':
                         if not obj.stage:
                             cur.execute(f"""INSERT INTO objects(type, posX, 
                             posY, room_id, color) values(3, {obj.position[0]}, 
-                            {obj.position[1]}, {id}, {obj.color})""")
+                            {obj.position[1]}, {id_}, {obj.color})""")
 
                 con.commit()
 
-    def get(self, coords, diff=(0, 0)):
+    def get(self, coordinates, diff=(0, 0)):
         """Возвращает объект по координатам"""
         for entity in [*self.entities, *self.objects, *self.base]:
-            if entity.position == (coords[0] + diff[1], coords[1] + diff[0]):
+            if entity.position == (coordinates[0] + diff[1],
+                                   coordinates[1] + diff[0]):
                 return entity
 
     def player_move(self, button):
         """Движение игрока"""
-
-        if any([i.animator.animation not in ['idle', 'die'] for i in
-                self.enemies]):
-            return
-            # если враги еще соверщают какие-то действия, то игрок стоит
 
         # словарь вида {кнопка: (смещение на X и Y)}
         buttons_keys = {
@@ -318,16 +312,19 @@ class Dungeon(Element):
             pygame.K_DOWN: (1, 0)
         }
 
-        if self.player.animator.animation != 'idle':
+        if any([i.animator.animation not in ['idle', 'die'] for i in
+                self.enemies]):
+            # если враги еще совершают какие-то действия, то игрок стоит
             return
-
-        self.player.interaction_teleport(self)  # EDIT
-
+        if self.player.animator.animation != 'idle':
+            # если игрок совершает какое-то действие, то
+            # мы не начинаем новое действие
+            return
         if button not in buttons_keys.keys():
             return  # если нажали на неизвестную кнопку
 
-        self.player.interaction(self, buttons_keys[
-            button])  # взаимодействуем с объектом
+        # взаимодействуем с объектом
+        self.player.interaction(self, buttons_keys[button])
 
     def enemies_move(self):
         """Движение врагов"""
@@ -342,9 +339,15 @@ class Dungeon(Element):
 
         for enemy in self.enemies:
             if not enemy.alive:
+                # текущий враг метрв, то переходим к следущему врагу
                 continue
 
-            diff = options[random.randint(0, len(options) - 1)]
+            if enemy.animator.animation != 'idle':
+                res.append(True)
+                # если враг уже совершает действие,
+                # то переходим к следущему врагу
+                continue
+
             checking = []
             for i in options:
                 checking.append(
@@ -353,6 +356,7 @@ class Dungeon(Element):
                 res.append(False)
                 continue
 
+            diff = options[random.randint(0, len(options) - 1)]
             player_pos = self.player.position
             enemy_pos = enemy.position
             if random.randint(0, 1):
@@ -366,26 +370,15 @@ class Dungeon(Element):
                 elif enemy_pos[0] != player_pos[0]:
                     diff = (0, -1) if enemy_pos[0] > player_pos[0] else (0, 1)
 
-            # EDIT запирание врагов
-            while (
-                    enemy_pos[0] + diff[0],
-                    enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
-                self.get(enemy_pos, diff), (Player, Empty)):
+            # EDIT
+            while (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(self.get(enemy_pos, diff), (Player, Empty)):
                 diff = options[random.randint(0, len(options) - 1)]
 
             blocked_cells.append(
                 (enemy_pos[0] + diff[0], enemy_pos[1] + diff[1]))
 
-            if enemy.animator.animation != 'idle':
-                res.append(
-                    True)
-                # если враг уже совершает действие,
-                # то переходим к следущему врагу
-                continue
-
-            res.append(enemy.interaction(self,
-                                         diff))
             # добавляем результат взаимодействия с список
+            res.append(enemy.interaction(self, diff))
 
         if not any(res):  # если у всех врагов закончились очки действий
             self.turn = 1  # передаем ход игроку

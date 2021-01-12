@@ -43,8 +43,8 @@ class Animator:
                         self.start(self.animation)
                     else:
                         self.start('idle')
-        return self.animations[self.animation][self.counter], self.shift
         # возвращаем кадр и смещение
+        return self.animations[self.animation][self.counter], self.shift
 
     def start(self, name):
         """Начать новую анимацию"""

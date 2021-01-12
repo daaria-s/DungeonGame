@@ -12,7 +12,7 @@ def load_image(name):
     return pygame.image.load(name).convert_alpha()
 
 
-def convert_coords(position):
+def convert_coordinates(position):
     if position[0] in (0, 9):
         return abs(position[0] - 9), position[1]
     return position[0], abs(position[1] - 11)
