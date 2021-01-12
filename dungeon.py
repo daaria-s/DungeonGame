@@ -6,9 +6,12 @@ from PIL import Image
 from interface import Panel, Button, Element
 import sqlite3
 import pygame
+import config
 
 
 class Room:
+    """класс комнаты подземелья"""
+
     def __init__(self, exit_, enemies, objects, num_of_room, enter=(0, 0)):
         self.num = num_of_room
         self.enter = enter
@@ -34,7 +37,9 @@ class Room:
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
+        print(self.enter, self.num)
         if self.num != 1:
+            print(self.enter, '!')
             map_[self.enter[0]][self.enter[1]] = self.num - 1
 
         map_[self.exit_[0]][self.exit_[1]] = self.num + 1
@@ -44,6 +49,7 @@ class Room:
 
 
 class Dungeon(Element):
+    """класс подземелья"""
 
     def __init__(self):
         super().__init__()
@@ -57,6 +63,7 @@ class Dungeon(Element):
         self.entities = []
         self.buttons = []
         self.user_name = ''
+        self.con = sqlite3.connect('dungeonBase.db')
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
@@ -141,6 +148,9 @@ class Dungeon(Element):
             Button('game/panel/save', (500, 10), 'save')
         ]
 
+    def get_new_enemy(self, n):
+        pass
+
     def generate_level(self, num):
         closed_cells = [self.player.position]
         enter = (0, 0)
@@ -171,13 +181,13 @@ class Dungeon(Element):
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
-            self.objects.append(Chest((x, y), 'potion'))
+            self.objects.append(Chest((x, y), 'potion', 'red'))
             closed_cells.append((x, y))
         exit_ = random.choice(
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
-            door_color = random.choice(['red', 'blue'])
+            door_color = random.choice(['red', 'blue', 'green'])
 
             x, y = random.randint(1, 9), random.randint(1, 8)
             while (x, y) in closed_cells:
@@ -191,17 +201,18 @@ class Dungeon(Element):
                     random.randint(0, len(self.unused_keys) - 1))))
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects,
-                               self.current_room,
-                               enter=enter)
+                               num,
+                               enter)
 
     def load(self, user_name):
-        con = sqlite3.connect('dungeonBase.db')
-        cur = con.cursor()
+        cur = self.con.cursor()
+        self.user_name = user_name
 
         player = cur.execute(f"""SELECT room_num, 
                 hit_points, max_hit_points, 
+                damage, max_damage, 
                 action_points, max_action_points,
-                damage, max_damage, posX, posY FROM users 
+                posX, posY FROM users 
                 WHERE user_name = '{user_name}'""").fetchone()
 
         self.player = Player((player[-2], player[-1]), *player[1:-2])
@@ -212,89 +223,138 @@ class Dungeon(Element):
                     WHERE user = '{user_name}'""").fetchall()
 
         self.rooms = {}
-        for room in rooms:
+        for room_id, number, *positions in rooms:
             enemies = cur.execute(f"""SELECT color, hit_points, 
                         max_hit_points,
                         action_points, max_action_points, 
                         damage, max_damage, posX, posY FROM entities
-                        WHERE room_id = {room[0]}""").fetchall()
+                        WHERE room_id = {room_id}""").fetchall()
 
             list_of_enemies = []
-            for i in enemies:
-                list_of_enemies.append(Enemy((i[-2], i[-1]), *i[:-2]))
-            self.rooms[room[1]] = Room(room[-2:], list_of_enemies, [], room[1],
-                                       room[2:4])
+            list_of_objects = []
+            for color, hit, max_hit, act, max_act, dam, \
+                max_dam, x, y in enemies:
+                list_of_enemies.append(
+                    Enemy((x, y), color, hit, max_hit, dam,
+                          max_dam, act, max_act))
+
+            objects = cur.execute(f"""SELECT type, posX, posY, inside, color 
+                FROM objects
+                WHERE room_id = {room_id}""").fetchall()
+
+            for type, x, y, inside, color in objects:
+                if type == 1:
+                    list_of_objects.append(Box((x, y)))
+                elif type == 2:
+                    list_of_objects.append(
+                        Chest((x, y), *reversed(inside.split('_'))))
+                else:
+                    list_of_objects.append(Door((x, y), color))
+
+            self.rooms[number] = Room(positions[-2:], list_of_enemies,
+                                      list_of_objects,
+                                      number,
+                                      positions[:2])
 
         self.enemies = self.rooms[self.current_room].enemies
         self.entities = [self.player, *self.enemies]
-        self.objects = []
+        self.objects = self.rooms[self.current_room].objects
         self.load_room(player[0])
 
-    def add_room(self):
-        pass
+    def save_room(self, n):
+        cur = self.con.cursor()
+        room_id = cur.execute(f"""SELECT id FROM rooms 
+            WHERE number = {n} and user = '{self.user_name}'""").fetchone()[0]
+        room = self.rooms[n]
+        for enemy in room.enemies:
+            if enemy.alive:
+                cur.execute(f"""INSERT INTO entities(hit_points, 
+                max_hit_points,
+                action_points, max_action_points, 
+                damage, max_damage, posX, posY, room_id, color)
+                values({enemy.hit_points[0]}, {enemy.hit_points[1]},
+                {enemy.action_points[0]}, {enemy.action_points[1]},
+                {enemy.damage[0]}, {enemy.damage[1]}, 
+                {enemy.position[0]}, {enemy.position[1]}, {room_id}, 
+                '{enemy.color}')""")
 
-    def save(self, user_name):
-        con = sqlite3.connect('dungeonBase.db')
-        cur = con.cursor()
-        if (user_name,) in cur.execute("""SELECT user_name 
-        FROM users""").fetchall():
-            pass
-        else:
-            cur.execute(
-                f"""INSERT INTO users(user_name, room_num, 
-                hit_points, max_hit_points, 
-                action_points, max_action_points,
-                damage, max_damage, posX, posY)
-                values('{user_name}', {self.current_room}, 
-                {self.player.hit_points[0]}, {self.player.hit_points[1]}, 
-                {self.player.action_points[0]}, {self.player.action_points[1]}, 
-                {self.player.damage[0]},{self.player.damage[1]},
-                {self.player.position[0]}, 
-                {self.player.position[1]})""")
-            con.commit()
+        for obj in room.objects:
+            if obj.name == 'box':
+                cur.execute(f"""INSERT INTO objects(type, posX, posY, 
+                room_id) 
+                values(1, {obj.position[0]}, 
+                {obj.position[1]}, {room_id})""")
+            elif not obj.stage:
+                if obj.name == 'chest':
+                    cur.execute(f"""INSERT INTO objects(type, posX, 
+                        posY, room_id, inside) values(2, {obj.position[0]}, 
+                        {obj.position[1]}, {room_id}, '{obj.inside.name}')""")
+                elif obj.name == 'door':
+                    cur.execute(f"""INSERT INTO objects(type, posX, 
+                        posY, room_id, color) values(3, {obj.position[0]}, 
+                        {obj.position[1]}, {room_id}, '{obj.color}')""")
+            self.con.commit()
 
-            for obj in self.player.inventory:
-                cur.execute(f"""INSERT INTO inventory(user, type, used)
-                values({user_name}, {obj}, True)""")
+    def update_base(self):
+        cur = self.con.cursor()
+        cur.execute(
+            f"""UPDATE users
+                        SET room_num = {self.current_room},
+                        hit_points = {self.player.hit_points[0]}, 
+                        max_hit_points = {self.player.hit_points[1]}, 
+                        action_points = {self.player.action_points[0]}, 
+                        max_action_points = {self.player.action_points[1]},
+                        damage = {self.player.damage[0]}, 
+                        max_damage = {self.player.damage[1]}, 
+                        posX = {self.player.position[0]}, 
+                        posY = {self.player.position[1]}
+                        WHERE user_name = '{self.user_name}'""")
+        self.con.commit()
 
-            # print(self.unused_keys)
-            for obj in self.unused_keys:
-                cur.execute(f"""INSERT INTO inventory(user, type, used)
-                values({user_name}, {obj}, False)""")
-            for n, room in self.rooms.items():
-                cur.execute(f"""INSERT INTO rooms(number, enter_posX, 
-                    enter_posY, exit_posX, exit_posY, user) 
-                    values({n}, {room.enter[0]}, {room.enter[1]}, 
-                    {room.exit_[0]}, {room.exit_[1]}, '{user_name}')""")
-                con.commit()
-                id = cur.execute(f"""SELECT id FROM rooms 
-                    WHERE user = '{user_name}' 
-                    AND number = {n}""").fetchone()[0]
-                for enemy in room.enemies:
-                    if enemy.alive:
-                        cur.execute(f"""INSERT INTO entities(hit_points, 
-                        max_hit_points,
-                        action_points, max_action_points, 
-                        damage, max_damage, posX, posY, room_id, color)
-                        values({enemy.hit_points[0]}, {enemy.hit_points[1]},
-                        {enemy.action_points[0]}, {enemy.action_points[1]},
-                        {enemy.damage[0]}, {enemy.damage[1]}, 
-                        {enemy.position[0]}, {enemy.position[1]}, {id}, 
-                        '{enemy.color}')""")
+        for n, room in self.rooms.items():
 
-                for obj in room.objects:
-                    if obj.name == 'box':
-                        cur.execute(f"""INSERT INTO objects(type, posX, posY, 
-                        room_id) 
-                        values(1, {obj.position[0]}, 
-                        {obj.position[1]}, {id})""")
-                    elif obj.name == 'door':
-                        if not obj.stage:
-                            cur.execute(f"""INSERT INTO objects(type, posX, 
-                            posY, room_id, color) values(3, {obj.position[0]}, 
-                            {obj.position[1]}, {id}, {obj.color})""")
+            if room.opened:
+                room_id = cur.execute(f"""SELECT id FROM rooms 
+                    WHERE number = {n} and user = '{self.user_name}'""").fetchone()[
+                    0]
 
-                con.commit()
+                cur.execute(f"""DELETE FROM entities 
+                    WHERE room_id = {room_id}""")
+
+                cur.execute(f"""DELETE FROM objects 
+                    WHERE room_id = {room_id}""")
+
+                self.con.commit()
+                self.save_room(n)
+
+    def save(self, user_name=None):
+        config.USERS.append(self.user_name)
+        cur = self.con.cursor()
+        self.user_name = user_name if not self.user_name else self.user_name
+        cur.execute(
+            f"""INSERT INTO users(user_name, room_num, 
+            hit_points, max_hit_points, 
+            action_points, max_action_points,
+            damage, max_damage, posX, posY)
+            values('{self.user_name}', {self.current_room}, 
+            {self.player.hit_points[0]}, {self.player.hit_points[1]}, 
+            {self.player.action_points[0]}, {self.player.action_points[1]}, 
+            {self.player.damage[0]},{self.player.damage[1]},
+            {self.player.position[0]}, 
+            {self.player.position[1]})""")
+        self.con.commit()
+
+        for obj in self.player.inventory:
+            cur.execute(f"""INSERT INTO inventory(user, type, used)
+            values({self.user_name}, {obj}, True)""")
+
+        for n, room in self.rooms.items():
+            cur.execute(f"""INSERT INTO rooms(number, enter_posX, 
+            enter_posY, exit_posX, exit_posY, user) 
+            values({n}, {room.enter[0]}, {room.enter[1]}, 
+            {room.exit_[0]}, {room.exit_[1]}, '{self.user_name}')""")
+            self.con.commit()
+            self.save_room(n)
 
     def get(self, coords, diff=(0, 0)):
         """Возвращает объект по координатам"""
@@ -349,6 +409,7 @@ class Dungeon(Element):
             for i in options:
                 checking.append(
                     self.get(enemy.position, i).name in ('player', 'empty'))
+
             if not any(checking):  # если врагу некуда идти
                 res.append(False)
                 continue
@@ -428,8 +489,5 @@ class Dungeon(Element):
 
     def key_down(self, button):
         """Нажатие на клавиатуру"""
-        if button == pygame.K_0:
-            USER_NAME = input()
-            self.save(USER_NAME)
         if self.turn == 1:  # если ход игрока
             self.player_move(button)  # то вызываем функцию движения игрока

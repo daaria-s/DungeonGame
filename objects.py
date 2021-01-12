@@ -32,12 +32,12 @@ class Empty(GameObject):
         super().__init__('ground', position, 'empty')
 
 
-class Teleport(GameObject):
-    """Класс телепорта"""
-
-    def __init__(self, position, number):
-        super().__init__('ground', position, 'teleport')
-        self.number = number  # номер комнаты, в которую ведет этот телепорт
+# class Teleport(GameObject):
+#     """Класс телепорта"""
+#
+#     def __init__(self, position, number):
+#         super().__init__('ground', position, 'teleport')
+#         self.number = number  # номер комнаты, в которую ведет этот телепорт
 
 
 class Box(GameObject):
@@ -54,12 +54,12 @@ class Box(GameObject):
 
 class Chest(GameObject):
 
-    def __init__(self, position, object_, color=None):
+    def __init__(self, position, object_, color):
         super().__init__('chest', position, 'chest')
         if object_ == 'key':
             self.inside = Key(self.position, color)
         elif object_ == 'potion':
-            self.inside = Potion(self.position, 'green')
+            self.inside = Potion(self.position, color)
         self.stage = 0
 
     def touch(self):
@@ -110,5 +110,5 @@ class Key(GameObject):
 
 class Potion(GameObject):
     def __init__(self, position, color):
-        super().__init__('potions/' + color, position, 'health')
-        self.color = color
+        super().__init__('potions/' + color, position, color + '_potion')
+        self.color = color  # цвет зелья

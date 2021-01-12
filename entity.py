@@ -99,9 +99,9 @@ class Entity(GameObject):
         # отнимаем случайное количество жизней в рамках урона
         self.hit_points[0] -= random.randint(damage[0], damage[1])
         if self.inventory:
-            if 'health' in self.inventory:
+            if 'green_potion' in self.inventory:
                 self.hit_points[0] += 1
-                self.inventory.remove('health')
+                self.inventory.remove('green_potion')
         if self.hit_points[0] <= 0:
             self.die()
 
@@ -124,8 +124,13 @@ class Player(Entity):
                          action_points, max_action_points)
 
     def new_inventory(self, object_):
-        if object_ == 'health' and self.hit_points[0] < self.hit_points[1]:
+        if object_ == 'green_potion' and self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
+        elif object_ == 'red_potion':
+            self.damage[0] += 1
+            self.damage[1] += 1
+        elif object_ == 'blue_potion':
+            self.action_points[1] += 1
         elif len(self.inventory) < 20:
             self.inventory.append(object_)
 
@@ -137,9 +142,11 @@ class Player(Entity):
         if next_cell and next_cell.name == 'empty':  # если клетка свободна
             box = dungeon_.get(self.position, movement)  # получаем коробку
             self.interaction_empty(box)  # двигаем игрока
+            print(box.position)
             box.move((self.position[0] + movement[1],
                       self.position[1] + movement[0]),
                      self.get_direction(next_cell))
+            print(box.position)
             return True
 
     def interaction_chest(self, obj):

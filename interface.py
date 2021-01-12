@@ -3,7 +3,7 @@ import config
 import sys
 from functions import *
 import pygame
-from entity import Player
+from entity import Player, Enemy
 
 
 class Window:
@@ -39,6 +39,11 @@ class Window:
                                 and self.name in self.important_windows:
                             self.fade_target = target
                             self.fade_out_counter = 0
+                        elif target == 'save':
+                            if not self.objects[0].user_name:
+                                return target
+                            else:
+                                self.objects[0].update_base()
                         else:
                             return target
             elif event.type == pygame.MOUSEBUTTONUP:
@@ -83,6 +88,7 @@ class Window:
                 self.first_load = True
                 if self.fade_target == 'lose' or self.fade_target == 'menu':
                     self.objects[0].new()  # обновляем подземелье
+
                 return self.fade_target
 
         if self.fade_in_counter != 0 or self.fade_out_counter != 61:
@@ -238,7 +244,7 @@ class Text(Element):
         if self.target and self.attr_name:
             # если есть объект класса игрок и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
-            if isinstance(self.target, Player):
+            if isinstance(self.target, (Player, Enemy)):
                 surf.blit(
                     self.font.render(str(value[0]) + '/' + str(value[1]), True,
                                      self.color),
@@ -341,8 +347,12 @@ class Inventory(Element):
                 'This key open green doors'),
             'blue_key': (load_image('Sprites/inventory/blue_key.png'),
                          'This key open blue doors'),
-            'health': (load_image('Sprites/inventory/green_potion.png'),
-                       'This potion heals you')
+            'green_potion': (load_image('Sprites/inventory/green_potion.png'),
+                             'This potion heals you'),
+            'red_potion': (load_image('Sprites/inventory/red_potion.png'),
+                           'This potion heals you'),
+            'blue_potion': (load_image('Sprites/inventory/blue_potion.png'),
+                            'This potion heals you')
         }
 
         self.target = target
@@ -423,7 +433,8 @@ class Arrow(Button):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             music.play_sound('button_down')  # проигрываем звук нажатия
-            config.N = (config.N + self.function) % config.MAX_N
+            config.N = (config.N + self.function) % config.MAX_N if USERS \
+                else None
             config.USER_NAME = config.USERS[config.N] if config.USERS else None
 
 
@@ -436,7 +447,8 @@ class SaveButton(Button):
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if self.obj.user_name not in config.USERS:
+            if config.INPUT_USER and config.INPUT_USER not in config.USERS:
+                print(config.INPUT_USER)
                 self.obj.save(config.INPUT_USER)
                 return self.target
 
