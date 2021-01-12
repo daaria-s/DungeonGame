@@ -15,7 +15,7 @@ class Room:
     def __init__(self, exit_, enemies, objects, num_of_room, enter=(0, 0)):
         self.num = num_of_room
         self.enter = tuple(enter)
-        self.exit_ = tuple(exit_)
+        self.exit_ = tuple(exit_)  # вход и выход из данной комнаты
 
         self.enemies = enemies
         self.objects = objects
@@ -37,7 +37,7 @@ class Room:
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
-        if self.num != 1:
+        if self.num != 1:  # если не первая комната, то есть существует вход
             map_[self.enter[0]][self.enter[1]] = self.num - 1
 
         map_[self.exit_[0]][self.exit_[1]] = self.num + 1
@@ -145,7 +145,7 @@ class Dungeon(Element):
             Button('game/panel/save', (500, 10), 'save')
         ]
 
-    def generate_level(self, num):
+    def generate_level(self, num):  # генерация уровня игры (карты)
         closed_cells = [self.player.position]
         enter = (0, 0)
 
@@ -153,7 +153,7 @@ class Dungeon(Element):
             enter = self.rooms[num - 1].enter_from_exit()
 
         num1, num2 = (2, 4) if num < 4 else (3, 5)
-        for i in range(random.randint(num1, num2)):
+        for i in range(random.randint(num1, num2)):  # генерация врагов
             x, y = random.randint(2, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
@@ -163,7 +163,7 @@ class Dungeon(Element):
                       1, 1, 2, 2))
             closed_cells.append((x, y))
 
-        for i in range(random.randint(6, 7)):
+        for i in range(random.randint(6, 7)):  # генерация коробок
             x, y = random.randint(2, 8), random.randint(2, 7)
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 8), random.randint(2, 7)
@@ -171,7 +171,7 @@ class Dungeon(Element):
             closed_cells.append((x, y))
 
         a, b = (0, 2)
-        for i in range(random.randint(a, b)):
+        for i in range(random.randint(a, b)):  # генерация зельев для здоровья
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
@@ -180,8 +180,7 @@ class Dungeon(Element):
         exit_ = random.choice(
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
-        a, b = (0, 2)
-        if num > 7:
+        if num > 7:  # генерация зельев для повышения силы или количества ходов
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
@@ -190,6 +189,7 @@ class Dungeon(Element):
             closed_cells.append((x, y))
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
+            # генерация двери, если неиспользованных ключей меньше 6
             door_color = random.choice(['red', 'blue', 'green'])
 
             x, y = random.randint(1, 9), random.randint(1, 8)
@@ -199,6 +199,7 @@ class Dungeon(Element):
             self.unused_keys.append(door_color)
 
         if not random.randint(0, 2) and self.unused_keys:
+            # добавится ли дверь в текущую комнату
             self.objects.append(
                 Door((exit_[1], exit_[0]), self.unused_keys.pop(
                     random.randint(0, len(self.unused_keys) - 1))))
@@ -207,7 +208,7 @@ class Dungeon(Element):
                                num,
                                enter)
 
-    def load(self, user_name):
+    def load(self, user_name):  # загрузка игры с базы
         cur = self.con.cursor()
         self.user_name = user_name
 
@@ -217,12 +218,13 @@ class Dungeon(Element):
             action_points, max_action_points,
             posX, posY FROM users 
             WHERE user_name = '{user_name}'""").fetchone()
+        # все харастеристикик игрока
 
         self.unused_keys = list(map(lambda x: x[0], cur.execute(f"""SELECT type
             FROM inventory 
             WHERE user = '{user_name}' AND used = 'False'""")))
 
-        self.player = Player((player[-2], player[-1]), *player[1:-2])
+        self.player = Player((player[-2], player[-1]), *player[1:-2])  # игрок
 
         self.player.inventory = list(map(lambda x: x[0], cur.execute(f"""SELECT
             type FROM inventory 
@@ -234,7 +236,7 @@ class Dungeon(Element):
                     WHERE user = '{user_name}'""").fetchall()
 
         self.rooms = {}
-        for room_id, number, *positions in rooms:
+        for room_id, number, *positions in rooms:  # все комнаты подземелья
             enemies = cur.execute(f"""SELECT color, hit_points, 
                         max_hit_points,
                         action_points, max_action_points, 
@@ -244,7 +246,7 @@ class Dungeon(Element):
             list_of_enemies = []
             list_of_objects = []
             for color, hit, max_hit, act, max_act, dam, \
-                max_dam, x, y in enemies:
+                max_dam, x, y in enemies:  # все враги на карте
                 list_of_enemies.append(
                     Enemy((x, y), color, hit, max_hit, dam,
                           max_dam, act, max_act))
@@ -253,13 +255,13 @@ class Dungeon(Element):
                 FROM objects
                 WHERE room_id = {room_id}""").fetchall()
 
-            for type, x, y, inside, color in objects:
-                if type == 1:
+            for type, x, y, inside, color in objects:  # все объекты на карте
+                if type == 1:  # коробки
                     list_of_objects.append(Box((x, y)))
-                elif type == 2:
+                elif type == 2:  # сундуки
                     list_of_objects.append(
                         Chest((x, y), *reversed(inside.split('_'))))
-                else:
+                else:  # двери
                     list_of_objects.append(Door((x, y), color))
 
             self.rooms[number] = Room(positions[-2:], list_of_enemies,
@@ -272,7 +274,7 @@ class Dungeon(Element):
         self.objects = self.rooms[self.current_room].objects
         self.load_room(player[0])
 
-    def save_room(self, n):
+    def save_room(self, n):  # сохранение 1 комнаты в базе
         cur = self.con.cursor()
         room_id = cur.execute(f"""SELECT id FROM rooms 
             WHERE number = {n} and user = '{self.user_name}'""").fetchone()[0]
@@ -289,13 +291,13 @@ class Dungeon(Element):
                 {enemy.position[0]}, {enemy.position[1]}, {room_id}, 
                 '{enemy.color}')""")
 
-        for obj in room.objects:
+        for obj in room.objects:  # объекты комнаты
             if obj.name == 'box':
                 cur.execute(f"""INSERT INTO objects(type, posX, posY, 
                 room_id) 
                 values(1, {obj.position[0]}, 
                 {obj.position[1]}, {room_id})""")
-            elif not obj.stage:
+            elif not obj.stage:  # если объект активен
                 if obj.name == 'chest':
                     cur.execute(f"""INSERT INTO objects(type, posX, 
                         posY, room_id, inside) values(2, {obj.position[0]}, 
@@ -307,6 +309,7 @@ class Dungeon(Element):
             self.con.commit()
 
     def update_base(self):
+        # обновление базы (если имя пользователя уже вводилось)
         cur = self.con.cursor()
         cur.execute(
             f"""UPDATE users
@@ -323,7 +326,7 @@ class Dungeon(Element):
         self.con.commit()
 
         cur.execute("""DELETE FROM inventory 
-        WHERE user = '{self.user_name}'""")
+        WHERE user = '{self.user_name}'""")  # удаление старого инвентаря
 
         for obj in self.player.inventory:
             cur.execute(f"""INSERT INTO inventory(user, type, used)
@@ -336,25 +339,26 @@ class Dungeon(Element):
         self.con.commit()
 
         for n, room in self.rooms.items():
-
-            if room.opened:
-                room_id = cur.execute(f"""SELECT id FROM rooms 
+            # если в комнату заходили, то есть могли изменяться
+            # положения врагов, объектов и тд
+            room_id = cur.execute(f"""SELECT id FROM rooms 
                     WHERE number = {n} 
                     and user = '{self.user_name}'""").fetchone()[0]
 
-                cur.execute(f"""DELETE FROM entities 
+            cur.execute(f"""DELETE FROM entities 
                     WHERE room_id = {room_id}""")
 
-                cur.execute(f"""DELETE FROM objects 
+            self.con.commit()
+
+            cur.execute(f"""DELETE FROM objects 
                     WHERE room_id = {room_id}""")
 
-                self.con.commit()
-                self.save_room(n)
+            self.con.commit()
+            self.save_room(n)
 
     def save(self, user_name):  # функция сохранения базы
         cur = self.con.cursor()
         self.user_name = user_name if not self.user_name else self.user_name
-        config.USERS.append(self.user_name)
         cur.execute(
             f"""INSERT INTO users(user_name, room_num, 
             hit_points, max_hit_points, 
@@ -366,13 +370,14 @@ class Dungeon(Element):
             {self.player.damage[0]},{self.player.damage[1]},
             {self.player.position[0]}, 
             {self.player.position[1]})""")
+        # добавление нового пользователя со всеми характеристиками
         self.con.commit()
 
-        for obj in self.player.inventory:
+        for obj in self.player.inventory:  # добавление инвентаря игрока
             cur.execute(f"""INSERT INTO inventory(user, type, used)
             values('{self.user_name}', '{obj}', 'True')""")
 
-        for obj in self.unused_keys:
+        for obj in self.unused_keys:  # добавляются неиспользованные ключи
             cur.execute(f"""INSERT INTO inventory(user, type, used)
             values('{self.user_name}', '{obj}', 'False')""")
 
@@ -382,7 +387,7 @@ class Dungeon(Element):
             values({n}, {room.enter[0]}, {room.enter[1]}, 
             {room.exit_[0]}, {room.exit_[1]}, '{self.user_name}')""")
             self.con.commit()
-            self.save_room(n)
+            self.save_room(n)  # добавление каждой комнаты в базу
 
     def get(self, coords, diff=(0, 0)):
         """Возвращает объект по координатам"""
@@ -444,7 +449,8 @@ class Dungeon(Element):
 
             player_pos = self.player.position
             enemy_pos = enemy.position
-            if random.randint(0, 1):
+            if random.randint(0, 1):  # генерация ходов врага
+                # враг пытается приблизиться к игроку
                 if enemy_pos[0] != player_pos[0]:
                     diff = (0, -1) if enemy_pos[0] > player_pos[0] else (0, 1)
                 elif enemy_pos[1] != player_pos[1]:
@@ -458,8 +464,9 @@ class Dungeon(Element):
             # EDIT запирание врагов
             while (
                     enemy_pos[0] + diff[0],
-                    enemy_pos[1] + diff[1]) in blocked_cells or not isinstance(
-                self.get(enemy_pos, diff), (Player, Empty)):
+                    enemy_pos[1] + diff[1]) in blocked_cells \
+                    or self.get(enemy_pos, diff).name \
+                    not in ('empty', 'player'):
                 diff = options[random.randint(0, len(options) - 1)]
 
             blocked_cells.append(
