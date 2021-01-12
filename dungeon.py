@@ -14,8 +14,8 @@ class Room:
 
     def __init__(self, exit_, enemies, objects, num_of_room, enter=(0, 0)):
         self.num = num_of_room
-        self.enter = enter
-        self.exit_ = exit_
+        self.enter = tuple(enter)
+        self.exit_ = tuple(exit_)
 
         self.enemies = enemies
         self.objects = objects
@@ -37,13 +37,10 @@ class Room:
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', '.', '.', '.', '.', '.', '.', '.', '.', '.', '.', 'W'],
                 ['W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W', 'W']]
-        print(self.enter, self.num)
         if self.num != 1:
-            print(self.enter, '!')
             map_[self.enter[0]][self.enter[1]] = self.num - 1
 
         map_[self.exit_[0]][self.exit_[1]] = self.num + 1
-
         self.opened += 1
         return map_
 
@@ -148,9 +145,6 @@ class Dungeon(Element):
             Button('game/panel/save', (500, 10), 'save')
         ]
 
-    def get_new_enemy(self, n):
-        pass
-
     def generate_level(self, num):
         closed_cells = [self.player.position]
         enter = (0, 0)
@@ -181,10 +175,19 @@ class Dungeon(Element):
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
-            self.objects.append(Chest((x, y), 'potion', 'red'))
+            self.objects.append(Chest((x, y), 'potion', 'green'))
             closed_cells.append((x, y))
         exit_ = random.choice(
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
+
+        a, b = (0, 2)
+        if num > 7:
+            x, y = random.randint(1, 9), random.randint(2, 8)
+            while (x, y) in closed_cells:
+                x, y = random.randint(1, 9), random.randint(2, 8)
+            self.objects.append(
+                Chest((x, y), 'potion', random.choice(['red', 'blue'])))
+            closed_cells.append((x, y))
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
             door_color = random.choice(['red', 'blue', 'green'])
@@ -209,13 +212,21 @@ class Dungeon(Element):
         self.user_name = user_name
 
         player = cur.execute(f"""SELECT room_num, 
-                hit_points, max_hit_points, 
-                damage, max_damage, 
-                action_points, max_action_points,
-                posX, posY FROM users 
-                WHERE user_name = '{user_name}'""").fetchone()
+            hit_points, max_hit_points, 
+            damage, max_damage, 
+            action_points, max_action_points,
+            posX, posY FROM users 
+            WHERE user_name = '{user_name}'""").fetchone()
+
+        self.unused_keys = list(map(lambda x: x[0], cur.execute(f"""SELECT type
+            FROM inventory 
+            WHERE user = '{user_name}' AND used = 'False'""")))
 
         self.player = Player((player[-2], player[-1]), *player[1:-2])
+
+        self.player.inventory = list(map(lambda x: x[0], cur.execute(f"""SELECT
+            type FROM inventory 
+            WHERE user = '{user_name}' AND used = 'True'""")))
         self.current_room = player[0]
 
         rooms = cur.execute(f"""SELECT id, number, enter_posX, 
@@ -299,24 +310,37 @@ class Dungeon(Element):
         cur = self.con.cursor()
         cur.execute(
             f"""UPDATE users
-                        SET room_num = {self.current_room},
-                        hit_points = {self.player.hit_points[0]}, 
-                        max_hit_points = {self.player.hit_points[1]}, 
-                        action_points = {self.player.action_points[0]}, 
-                        max_action_points = {self.player.action_points[1]},
-                        damage = {self.player.damage[0]}, 
-                        max_damage = {self.player.damage[1]}, 
-                        posX = {self.player.position[0]}, 
-                        posY = {self.player.position[1]}
-                        WHERE user_name = '{self.user_name}'""")
+                    SET room_num = {self.current_room},
+                    hit_points = {self.player.hit_points[0]}, 
+                    max_hit_points = {self.player.hit_points[1]}, 
+                    action_points = {self.player.action_points[0]}, 
+                    max_action_points = {self.player.action_points[1]},
+                    damage = {self.player.damage[0]}, 
+                    max_damage = {self.player.damage[1]}, 
+                    posX = {self.player.position[0]}, 
+                    posY = {self.player.position[1]}
+                    WHERE user_name = '{self.user_name}'""")
+        self.con.commit()
+
+        cur.execute("""DELETE FROM inventory 
+        WHERE user = '{self.user_name}'""")
+
+        for obj in self.player.inventory:
+            cur.execute(f"""INSERT INTO inventory(user, type, used)
+            values('{self.user_name}', '{obj}', 'True')""")
+
+        for obj in self.unused_keys:
+            cur.execute(f"""INSERT INTO inventory(user, type, used)
+            values('{self.user_name}', '{obj}', 'False')""")
+
         self.con.commit()
 
         for n, room in self.rooms.items():
 
             if room.opened:
                 room_id = cur.execute(f"""SELECT id FROM rooms 
-                    WHERE number = {n} and user = '{self.user_name}'""").fetchone()[
-                    0]
+                    WHERE number = {n} 
+                    and user = '{self.user_name}'""").fetchone()[0]
 
                 cur.execute(f"""DELETE FROM entities 
                     WHERE room_id = {room_id}""")
@@ -327,10 +351,11 @@ class Dungeon(Element):
                 self.con.commit()
                 self.save_room(n)
 
-    def save(self, user_name=None):
-        config.USERS.append(self.user_name)
+    def save(self, user_name):
+        print(config.USERS)
         cur = self.con.cursor()
         self.user_name = user_name if not self.user_name else self.user_name
+        config.USERS.append(self.user_name)
         cur.execute(
             f"""INSERT INTO users(user_name, room_num, 
             hit_points, max_hit_points, 
@@ -346,7 +371,11 @@ class Dungeon(Element):
 
         for obj in self.player.inventory:
             cur.execute(f"""INSERT INTO inventory(user, type, used)
-            values({self.user_name}, {obj}, True)""")
+            values('{self.user_name}', '{obj}', 'True')""")
+
+        for obj in self.unused_keys:
+            cur.execute(f"""INSERT INTO inventory(user, type, used)
+            values('{self.user_name}', '{obj}', 'False')""")
 
         for n, room in self.rooms.items():
             cur.execute(f"""INSERT INTO rooms(number, enter_posX, 

@@ -142,11 +142,9 @@ class Player(Entity):
         if next_cell and next_cell.name == 'empty':  # если клетка свободна
             box = dungeon_.get(self.position, movement)  # получаем коробку
             self.interaction_empty(box)  # двигаем игрока
-            print(box.position)
             box.move((self.position[0] + movement[1],
                       self.position[1] + movement[0]),
                      self.get_direction(next_cell))
-            print(box.position)
             return True
 
     def interaction_chest(self, obj):
@@ -170,6 +168,7 @@ class Player(Entity):
 
     def interaction_teleport(self, obj):
         """Взаимодействие с телепортом"""
+        print(self.position, obj.rooms[obj.current_room].exit_)
         if (self.position[1], self.position[0]) ==\
                 obj.rooms[obj.current_room].exit_:
             obj.change_room(obj.current_room + 1)
