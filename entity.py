@@ -173,7 +173,7 @@ class Player(Entity):
 
     def die(self):
         super().die()
-        config.LOSE = True
+        config.NEXT_WINDOW = 'lose'
 
 
 class Enemy(Entity):

@@ -60,7 +60,7 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 
@@ -81,7 +81,7 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 1, 1, 1, 1, 3, 3)
         self.current_room = 1
         self.turn = 1
 

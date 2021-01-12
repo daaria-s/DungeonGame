@@ -13,81 +13,58 @@ class Window:
         self.name = name
         self.objects = objects
         self.music_name = music_name
-        self.important_windows = ['menu', 'game', 'exit', 'lose']
-        self.first_load = True
-
-        self.fade_in_counter = 0
-        self.fade_out_counter = 61
-        self.fade_target = None
 
         self.fader = pygame.Surface(SIZE)
         self.fader.fill(BLACK)
 
-    def get_event(self, events):
+    def handle_events(self, events):
+        event_handlers = {
+            pygame.KEYDOWN: ['key_down', 'key'],
+            pygame.MOUSEBUTTONDOWN: ['button_down', 'pos'],
+            pygame.MOUSEBUTTONUP: ['button_up', 'pos'],
+            pygame.MOUSEMOTION: ['mouse_motion', 'pos'],
+        }
         for event in events:
-            if event.type == pygame.QUIT:
+            if self.name == 'exit' or event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
+            elif event.type in event_handlers.keys():
+                options = event_handlers[event.type]
                 for obj in self.objects:
-                    obj.key_down(event.key)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for obj in self.objects:
-                    target = obj.button_down(event.pos)
-                    if target:
-                        if target in self.important_windows \
-                                and self.name in self.important_windows:
-                            self.fade_target = target
-                            self.fade_out_counter = 0
-                        else:
-                            return target
-            elif event.type == pygame.MOUSEBUTTONUP:
-                for obj in self.objects:
-                    obj.button_up(event.pos)
-            elif event.type == pygame.MOUSEMOTION:
-                for obj in self.objects:
-                    obj.mouse_motion(event.pos)
+                    getattr(obj, options[0])(getattr(event, options[1]))
 
-        self.first_load = False
-        return self.name
-
-    def fade(self, surf, value):
-        self.fader.set_alpha(int(value * 4.25))
+    def fade(self, surf):
+        value = -1 * abs(config.FADE_COUNTER - config.MAX_FADE_COUNTER // 2) +\
+                config.MAX_FADE_COUNTER // 2
+        self.fader.set_alpha(int(4.25 * value))
         surf.blit(self.fader, (0, 0))
 
     def update(self, surf, events):
-        if self.name == 'exit':
-            pygame.quit()
-            sys.exit(1)
-        if config.LOSE:
-            self.fade_out_counter = 0
-            self.fade_target = 'lose'
-            config.LOSE = False
-        if self.first_load:
-            if self.music_name != music.current_music:
-                music.play_music(self.music_name)
-            if self.name in self.important_windows:
-                self.fade_in_counter = 60
-            self.first_load = False
-
         for obj in self.objects:
             obj.show(surf)
 
-        if self.fade_in_counter != 0:
-            self.fade(surf, self.fade_in_counter)
-            self.fade_in_counter -= 1
-        elif self.fade_out_counter != 61:
-            self.fade(surf, self.fade_out_counter)
-            self.fade_out_counter += 1
-            if self.fade_out_counter == 61:
-                self.first_load = True
-                if self.fade_target == 'lose' or self.fade_target == 'menu':
-                    self.objects[0].new()  # обновляем подземелье
-                return self.fade_target
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            if config.NEXT_WINDOW in WINDOW_TRANSFERS[config.CURRENT_WINDOW]:
+                config.CURRENT_WINDOW = config.NEXT_WINDOW
+            else:
+                if config.FADE_COUNTER == 0:
+                    config.FADE_COUNTER = config.MAX_FADE_COUNTER
+                self.fade(surf)
+                config.FADE_COUNTER -= 1
+                if config.FADE_COUNTER == 59:
+                    if config.CURRENT_WINDOW == 'game' and\
+                            (config.NEXT_WINDOW in ['menu', 'lose']):
+                        self.objects[0].new()
+                    config.CURRENT_WINDOW, config.NEXT_WINDOW =\
+                        config.NEXT_WINDOW, config.CURRENT_WINDOW
+                elif config.FADE_COUNTER == 58:  # first window load
+                    if music.current_music != self.music_name:
+                        music.play_music(self.music_name)
+                elif config.FADE_COUNTER == 0:
+                    config.NEXT_WINDOW = config.CURRENT_WINDOW
 
-        if self.fade_in_counter != 0 or self.fade_out_counter != 61:
-            return self.name
-        return self.get_event(events)
+        else:
+            self.handle_events(events)
 
 
 class Element:
@@ -148,7 +125,8 @@ class Button(AnimatedElement):
         if self.rect.collidepoint(mouse_pos) and self.target:
             music.play_sound('button_down')  # проигрываем звук нажатия
             self.animator.start('idle')
-            return self.target  # возвращаем имя окна, в которое нужно перейти
+            # устанавливаем имя окна, в которое нужно перейти
+            config.NEXT_WINDOW = self.target
 
     def mouse_motion(self, mouse_pos):
         """Функция движения мыши"""
@@ -177,7 +155,8 @@ class AntiButton(AnimatedElement):
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         if not self.rect.collidepoint(mouse_pos):  # если нажали не на кнопку
-            return self.target  # возвращаем имя окна, в которое нужно перейти
+            # устанавливаем имя окна, в которое нужно перейти
+            config.NEXT_WINDOW = self.target
 
 
 class Slider(AnimatedElement):
@@ -384,14 +363,12 @@ class Inventory(Element):
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
-        res = self.base.button_down(mouse_pos)  # если нажали вне инвентаря
-        if res:
-            return res  # то переходим в игру
+        self.base.button_down(mouse_pos)  # если нажали вне инвентаря
         for i in range(len(self.slots)):
             for k in range(len(self.slots[i])):  # если нажали на слот
                 if self.slots[i][k].button_down(mouse_pos):
-                    self.active_slot = self.slots[i][
-                        k]  # то он становится активным
+                    # то он становится активным
+                    self.active_slot = self.slots[i][k]
                     return
         self.active_slot = None  # опустошаем активный слот
 
@@ -438,7 +415,7 @@ class SaveButton(Button):
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             if self.obj.user_name not in config.USERS:
                 self.obj.save(config.INPUT_USER)
-                return self.target
+                config.NEXT_WINDOW = self.target
 
 
 class LoadButton(Button):
@@ -452,4 +429,4 @@ class LoadButton(Button):
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             if config.USER_NAME:
                 self.obj.load(config.USER_NAME)
-                return self.target
+                config.NEXT_WINDOW = self.target

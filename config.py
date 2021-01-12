@@ -4,7 +4,6 @@ import sqlite3
 WIDTH, HEIGHT = SIZE = 600, 600
 FPS = 60
 TILE = 50
-LOSE = False
 PANEL_IMAGE_SIZE = (30, 30)
 INVENTORY_IMAGE_SIZE = (50, 50)
 INVENTORY_INDENT = 25
@@ -22,7 +21,20 @@ PANEL_COLOR = (64, 64, 64)
 DESCRIPTION_COLOR = (192, 192, 192)
 
 music = Music()
-
+WINDOW_TRANSFERS = {
+    'menu': ['load', 'settings'],
+    'load': ['menu'],
+    'settings': ['menu'],
+    'game': ['save', 'inventory'],
+    'exit': [],
+    'inventory': ['game'],
+    'save': ['game'],
+    'lose': [],
+}
+CURRENT_WINDOW = 'exit'
+NEXT_WINDOW = 'menu'
+MAX_FADE_COUNTER = 120
+FADE_COUNTER = MAX_FADE_COUNTER
 
 con = sqlite3.connect('dungeonBase.db')
 cur = con.cursor()
