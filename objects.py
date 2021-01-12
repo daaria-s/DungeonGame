@@ -70,6 +70,7 @@ class Chest(GameObject):
         elif self.stage == 1:
             self.inside.animator.start('die')
             self.stage += 1
+            self.name = 'empty'
             return self.inside.name
         else:
             return '__empty__'
@@ -91,9 +92,9 @@ class Door(GameObject):
         self.inside = None
         self.stage = 0
 
-    def touch(self, has_key):
+    def touch(self, has_key):  # попытка открыть дверь
         if self.stage == 0:
-            if has_key:
+            if has_key:  # если есть ключ нужного цвета
                 self.animator.start('die')
                 self.stage += 1
         else:

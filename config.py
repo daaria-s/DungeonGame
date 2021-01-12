@@ -24,11 +24,15 @@ DESCRIPTION_COLOR = (192, 192, 192)
 music = Music()
 
 
-con = sqlite3.connect('dungeonBase.db')
-cur = con.cursor()
-USERS = list(map(lambda x: x[0], cur.execute("""SELECT user_name FROM users""").fetchall()))
-N, MAX_N = 0, len(USERS)
-USER_NAME = USERS[N] if USERS else None
-INPUT_USER = ''
-con.close()
+def users():
+    con = sqlite3.connect('dungeonBase.db')
+    cur = con.cursor()
+    users_ = list(map(lambda x: x[0], cur.execute(
+        """SELECT user_name FROM users""").fetchall()))
+    con.close()
+    return users_
 
+
+N, MAX_N = 0, len(users())
+USER_NAME = users()[N] if users() else None
+INPUT_USER = ''

@@ -211,6 +211,7 @@ class Slider(AnimatedElement):
         """Функция движения мыши"""
         if self.capture:  # если слайдер зажат
             # то двигаем его, не выходя за границы
+            x = 0
             if self.borders[0] <= mouse_pos[0] <= self.borders[1]:
                 x = mouse_pos[0]
             elif mouse_pos[0] < self.borders[0]:
@@ -433,9 +434,10 @@ class Arrow(Button):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             music.play_sound('button_down')  # проигрываем звук нажатия
-            config.N = (config.N + self.function) % config.MAX_N if USERS \
-                else None
-            config.USER_NAME = config.USERS[config.N] if config.USERS else None
+            if config.users():
+                max_n = len(config.users())
+                config.N = (config.N + self.function) % max_n
+                config.USER_NAME = config.users()[config.N]
 
 
 class SaveButton(Button):
@@ -447,8 +449,7 @@ class SaveButton(Button):
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if config.INPUT_USER and config.INPUT_USER not in config.USERS:
-                print(config.INPUT_USER)
+            if config.INPUT_USER and config.INPUT_USER not in config.users():
                 self.obj.save(config.INPUT_USER)
                 return self.target
 

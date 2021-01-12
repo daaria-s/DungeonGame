@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="b9fa2602-40f1-4672-8074-db2e2fb2b962" name="Default Changelist" comment="bug fixed">
-      <change beforePath="$PROJECT_DIR$/.idea/DungeonGame.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/DungeonGame.iml" afterDir="false" />
+    <list default="true" id="b9fa2602-40f1-4672-8074-db2e2fb2b962" name="Default Changelist" comment="comments">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sprites/inventory/potion.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Sprites/keys/potion/idle/potion.png" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dungeon.py" beforeDir="false" afterPath="$PROJECT_DIR$/dungeon.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/dungeonBase.db" beforeDir="false" afterPath="$PROJECT_DIR$/dungeonBase.db" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/entity.py" beforeDir="false" afterPath="$PROJECT_DIR$/entity.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/interface.py" beforeDir="false" afterPath="$PROJECT_DIR$/interface.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/objects.py" beforeDir="false" afterPath="$PROJECT_DIR$/objects.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/пояснительная.txt" beforeDir="false" afterPath="$PROJECT_DIR$/пояснительная.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +37,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
-  <component name="RunManager" selected="Python.tkinter_demo2">
+  <component name="RunManager" selected="Python.main">
     <configuration name="dungeon" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="DungeonGame" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -243,7 +239,28 @@
       <option name="project" value="LOCAL" />
       <updated>1610370232471</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="base fixed">
+      <created>1610480929789</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1610480929789</updated>
+    </task>
+    <task id="LOCAL-00010" summary="base fixed">
+      <created>1610486796688</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1610486796688</updated>
+    </task>
+    <task id="LOCAL-00011" summary="comments">
+      <created>1610487178715</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1610487178715</updated>
+    </task>
+    <option name="localTasksCounter" value="12" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -267,16 +284,8 @@
     <MESSAGE value="music changed, structure of files changed" />
     <MESSAGE value="doors redaction" />
     <MESSAGE value="bug fixed" />
-    <option name="LAST_COMMIT_MESSAGE" value="bug fixed" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/dungeon.py</url>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="base fixed" />
+    <MESSAGE value="comments" />
+    <option name="LAST_COMMIT_MESSAGE" value="comments" />
   </component>
 </project>

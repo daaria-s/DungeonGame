@@ -108,6 +108,7 @@ class Entity(GameObject):
     def die(self):
         """Смерть существа"""
         self.alive = False
+        self.name = 'empty'
         self.animator.start('die')  # включаем анимацию смерти
 
 
@@ -124,7 +125,8 @@ class Player(Entity):
                          action_points, max_action_points)
 
     def new_inventory(self, object_):
-        if object_ == 'green_potion' and self.hit_points[0] < self.hit_points[1]:
+        if object_ == 'green_potion' and\
+                self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
         elif object_ == 'red_potion':
             self.damage[0] += 1
