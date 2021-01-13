@@ -133,8 +133,15 @@ class Player(Entity):
         elif object_ == 'red_potion':
             self.damage[0] += 1
             self.damage[1] += 1
+            # максимум 3 урона
+            if self.damage[0] == 4:
+                self.damage[0] = 3
+                self.damage[1] = 3
         elif object_ == 'blue_potion':
             self.action_points[1] += 1
+            # максимум 9 очков действий
+            if self.action_points[1] == 10:
+                self.action_points[1] = 9
         elif len(self.inventory) < 20:
             self.inventory.append(object_)
 
@@ -178,26 +185,11 @@ class Player(Entity):
         # если игрок находится на входе или выходе
         if (self.position[1], self.position[0]) ==\
                 dungeon_.rooms[dungeon_.current_room].exit_:
-            if self.experience[0] >= self.experience[1]:
-                config.WIN = True
             dungeon_.change_room(dungeon_.current_room + 1)
         elif dungeon_.current_room != 1 and \
                 (self.position[1], self.position[0]) == \
                 dungeon_.rooms[dungeon_.current_room].enter:
             dungeon_.change_room(dungeon_.current_room - 1)
-
-    def interaction_entity(self, obj):
-        """Взаимодействие с существами"""
-        # EDIT
-        if obj.hit_points[0] <= 0:
-            # если существо мертво, то просто перемещаемся в нужную точу
-            self.animator.start('move_' + self.get_direction(obj))
-            self.position = obj.position
-        else:  # если существо живо, то атакуем его
-            self.animator.start('attack_' + self.get_direction(obj))
-            self.experience[0] += 3
-            obj.get_hit(self.damage)
-        return True
 
     def die(self):
         super().die()

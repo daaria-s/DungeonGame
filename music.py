@@ -9,11 +9,12 @@ class Music:
         self.sounds = {
             'hit': pygame.mixer.Sound('Sounds/hit.mp3'),
             'button_down': pygame.mixer.Sound('Sounds/button_click.mp3'),
-            'defeat': pygame.mixer.Sound('Sounds/defeat.mp3'),
         }
         self.musics = {
             'main': 'Sounds/menu_music.mp3',
-            'game': 'Sounds/game_music.mp3'
+            'game': 'Sounds/game_music.mp3',
+            'defeat': 'Sounds/defeat.mp3',
+            'victory': 'Sounds/victory.mp3',
         }
         self.current_music = None
 

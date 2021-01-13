@@ -1,9 +1,10 @@
 from objects import *
 from entity import Player, Enemy
 from config import *
+import config
 import random
 from PIL import Image
-from interface import Panel, Button, Element
+from interface import Button, Panel, Text, Element
 import sqlite3
 import pygame
 
@@ -57,13 +58,13 @@ class Dungeon(Element):
         self.objects = []
         self.base = []
         self.entities = []
-        self.buttons = []
+        self.elements = []
         self.user_name = ''
         self.con = sqlite3.connect(DATABASE)
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3, -1, 40)
+        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 100)
         self.current_room = 1
         self.turn = 1
 
@@ -76,13 +77,13 @@ class Dungeon(Element):
         self.objects = []
         self.base = []
         self.entities = []
-        self.buttons = []
+        self.elements = []
         self.user_name = ''
         self.first = True
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3, -1, 40)
+        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 100)
         self.current_room = 1
         self.turn = 1
 
@@ -138,29 +139,55 @@ class Dungeon(Element):
 
         self.top_panel = Panel(self.player, 0)  # создаем верхнюю
         self.bottom_panel = Panel(None, 550)  # и нижнюю панели
-        self.buttons = [  # создаем кнопки
+        self.elements = [  # создаем кнопки и поле для опыта
             Button('game/panel/exit', (550, 10), 'menu'),
             Button('game/panel/inventory', (450, 10), 'inventory'),
-            Button('game/panel/save', (500, 10), 'save')
+            Button('game/panel/save', (500, 10), 'save'),
+            Text((370, 13), EXPERIENCE_COLOR, self.player, 'experience'),
         ]
 
+    def generate_enemies(self, room):
+        patterns = [
+            ['blue', 2, 2, 1, 1, 2, 2],
+            ['green', 3, 3, 1, 2, 2, 2],
+            ['red', 3, 3, 2, 2, 2, 2],
+            ['purple', 4, 4, 2, 3, 3, 3],
+        ]
+        if room == 1:
+            a = random.randint(2, 4)
+            enemy_number = [a, 4 - a, 0, 0]
+        elif 2 <= room <= 5:
+            a = random.randint(3, 4)
+            enemy_number = [4 - a, a, 0, 0]
+        elif 6 <= room <= 9:
+            a = random.randint(2, 3)
+            enemy_number = [1, a, 3 - a, 0]
+        elif 10 <= room <= 14:
+            a = random.randint(3, 5)
+            enemy_number = [0, 5 - a, a, 0]
+        elif 15 <= room <= 20:
+            a = random.randint(3, 4)
+            enemy_number = [0, 4 - a, a, 1]
+        elif room > 20:
+            a = random.randint(4, 5)
+            enemy_number = [0, 0, 6 - a, a]
+
+        return [patterns[i] for i in range(len(patterns)) for _ in
+                range(enemy_number[i])]
+
     def generate_level(self, num):  # генерация уровня игры (карты)
-        self.player.experience[0] += 1
         closed_cells = [self.player.position]
         enter = (0, 0)
 
         if num != 1:
             enter = self.rooms[num - 1].enter_from_exit()
 
-        num1, num2 = (2, 4) if num < 4 else (3, 5)
-        for i in range(random.randint(num1, num2)):  # генерация врагов
+        enemies_options = self.generate_enemies(num)
+        for i in range(len(enemies_options)):  # генерация врагов
             x, y = random.randint(2, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(2, 9), random.randint(2, 8)
-            self.enemies.append(
-                Enemy((x, y),
-                      random.choice(['green', 'blue', 'purple', 'red']), 2, 2,
-                      1, 1, 2, 2))
+            self.enemies.append(Enemy((x, y), *enemies_options[i]))
             closed_cells.append((x, y))
 
         for i in range(random.randint(6, 7)):  # генерация коробок
@@ -180,7 +207,7 @@ class Dungeon(Element):
         exit_ = random.choice(
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
-        if num > 7:  # генерация зельев для повышения силы или количества ходов
+        if num > 6:  # генерация зельев для повышения силы или количества ходов
             x, y = random.randint(1, 9), random.randint(2, 8)
             while (x, y) in closed_cells:
                 x, y = random.randint(1, 9), random.randint(2, 8)
@@ -393,10 +420,11 @@ class Dungeon(Element):
 
     def get(self, coordinates, diff=(0, 0)):
         """Возвращает объект по координатам"""
-        for entity in [*self.entities, *self.objects, *self.base]:
-            if entity.position == (coordinates[0] + diff[1],
+        for obj in [*self.entities, *self.objects, *self.base]:
+            if obj.position == (coordinates[0] + diff[1],
                                    coordinates[1] + diff[0]):
-                return entity
+                if getattr(obj, 'alive', True):
+                    return obj
 
     def player_move(self, button):
         """Движение игрока"""
@@ -423,7 +451,13 @@ class Dungeon(Element):
         # проверяем на нахождение в телепорте
         self.player.interaction_teleport(self)
         # взаимодействуем с объектом
+        obj = self.get(self.player.position, buttons_keys[button])
+        obj_name = obj.name
         self.player.interaction(self, buttons_keys[button])
+        if obj_name == 'enemy' and not obj.alive:
+            self.player.experience[0] += 66
+            if self.player.experience[0] > self.player.experience[1]:
+                config.NEXT_WINDOW = 'win'
 
     def enemies_move(self):
         """Движение врагов"""
@@ -494,14 +528,14 @@ class Dungeon(Element):
         surf.blit(self.background, apply((0, 0)))  # отображаем поле
         for entity in self.entities:  # отображаем существ
             entity.show(surf)
-        for obj in self.objects:  # отображает объекты
+        for obj in self.objects:  # отображаем объекты
             obj.show(surf)
 
         self.top_panel.show(surf)  # отображаем верхнюю
         self.bottom_panel.show(surf)  # и нижнюю панели
 
-        for button in self.buttons:  # отображаем кнопки
-            button.show(surf)
+        for elem in self.elements:  # отображаем кнопки
+            elem.show(surf)
 
     def button_down(self, mouse_pos):
         """Нажатие мыши"""
@@ -513,12 +547,12 @@ class Dungeon(Element):
         else:
             self.bottom_panel.change_target(None)
 
-        for button in self.buttons:  # проверяем нажатие на кнопки
-            button.button_down(mouse_pos)
+        for elem in self.elements:  # проверяем нажатие на кнопки
+            elem.button_down(mouse_pos)
 
     def key_down(self, key):
         """Нажатие на клавиатуру"""
-        for button in self.buttons:
-            button.key_down(key)
+        for elem in self.elements:
+            elem.key_down(key)
         if self.turn == 1:  # если ход игрока
             self.player_move(key)  # то вызываем функцию движения игрока

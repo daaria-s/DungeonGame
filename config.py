@@ -20,6 +20,7 @@ DAMAGE_COLOR = (192, 32, 32)
 ACTION_POINTS_COLOR = (32, 32, 192)
 PANEL_COLOR = (64, 64, 64)
 DESCRIPTION_COLOR = (192, 192, 192)
+EXPERIENCE_COLOR = (32, 192, 192)
 
 music = Music()
 WINDOW_TRANSFERS = {
@@ -31,6 +32,7 @@ WINDOW_TRANSFERS = {
     'inventory': ['game'],
     'save': ['game'],
     'lose': [],
+    'win': []
 }
 CURRENT_WINDOW = 'exit'
 NEXT_WINDOW = 'menu'

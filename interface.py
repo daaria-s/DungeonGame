@@ -3,7 +3,6 @@ import config
 import sys
 from config import *
 import pygame
-from entity import Player, Enemy
 
 
 class Window:
@@ -34,7 +33,8 @@ class Window:
                     getattr(obj, options[0])(getattr(event, options[1]))
 
     def fade(self, surf):
-        value = -1 * abs(config.FADE_COUNTER - config.MAX_FADE_COUNTER // 2) +\
+        value = -1 * abs(
+            config.FADE_COUNTER - config.MAX_FADE_COUNTER // 2) + \
                 config.MAX_FADE_COUNTER // 2
         self.fader.set_alpha(int(4.25 * value))
         surf.blit(self.fader, (0, 0))
@@ -52,10 +52,10 @@ class Window:
                 self.fade(surf)
                 config.FADE_COUNTER -= 1
                 if config.FADE_COUNTER == 59:
-                    if config.CURRENT_WINDOW == 'game' and\
-                            (config.NEXT_WINDOW in ['menu', 'lose']):
+                    if config.CURRENT_WINDOW == 'game' and \
+                            (config.NEXT_WINDOW in ['menu', 'lose', 'win']):
                         self.objects[0].new()  # обновляем подземелье
-                    config.CURRENT_WINDOW, config.NEXT_WINDOW =\
+                    config.CURRENT_WINDOW, config.NEXT_WINDOW = \
                         config.NEXT_WINDOW, config.CURRENT_WINDOW
                 elif config.FADE_COUNTER == 58:  # first window load
                     if music.current_music != self.music_name:
@@ -226,16 +226,26 @@ class Text(Element):
     def show(self, surf):
         """Отображение на поверхности"""
         if self.target and self.attr_name:
-            # если есть объект класса игрок и его атрибут
+            # если есть объект класса игрок или враг и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
-            if isinstance(self.target, (Player, Enemy)):
+            if self.target.name == 'player':
+                if self.attr_name == 'damage':
+                    surf.blit(
+                        self.font.render(str(value[0]), True, self.color),
+                        self.position)
+                else:
+                    surf.blit(
+                        self.font.render(str(value[0]) + '/' + str(value[1]),
+                                         True, self.color), self.position)
+            elif self.target.name == 'enemy':
+                if self.attr_name == 'damage':
+                    delimiter = '-'
+                else:
+                    delimiter = '/'
                 surf.blit(
-                    self.font.render(str(value[0]) + '/' + str(value[1]), True,
-                                     self.color),
-                    self.position)
-            else:
-                surf.blit(self.font.render(value, True, self.color),
-                          self.position)
+                    self.font.render(str(value[0]) + delimiter + str(value[1]),
+                                     True, self.color), self.position)
+
         elif self.text:  # если есть статичный текст, то отбражаем его
             surf.blit(self.font.render(str(self.text), True, self.color),
                       self.position)
@@ -248,16 +258,17 @@ class Panel(Element):
 
     def __init__(self, target, y_shift):
         super().__init__()
-        self.background = Image('game/panel/background', (0, y_shift + 0))
+        self.background = Image('game/panel/background', (0, y_shift))
         self.target = target
         self.y_shift = y_shift
         self.objects = [
-            Image('game/panel/health', (50, y_shift + 10)),
-            Text((90, y_shift + 13), HP_COLOR, target, 'hit_points'),
-            Image('game/panel/damage', (170, y_shift + 10)),
-            Text((210, y_shift + 13), DAMAGE_COLOR, target, 'damage'),
-            Image('game/panel/action_points', (290, y_shift + 10)),
-            Text((330, y_shift + 13), ACTION_POINTS_COLOR, target,
+            Image('game/panel/health', (10, self.y_shift + 10)),
+            Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
+            Image('game/panel/damage', (100, self.y_shift + 10)),
+            Text((140, self.y_shift + 13), DAMAGE_COLOR, self.target,
+                 'damage'),
+            Image('game/panel/action_points', (170, self.y_shift + 10)),
+            Text((210, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
 
@@ -273,12 +284,13 @@ class Panel(Element):
     def change_target(self, new_target):
         self.target = new_target
         self.objects = [
-            Image('game/panel/health', (50, self.y_shift + 10)),
-            Text((90, self.y_shift + 13), HP_COLOR, new_target, 'hit_points'),
-            Image('game/panel/damage', (170, self.y_shift + 10)),
-            Text((210, self.y_shift + 13), DAMAGE_COLOR, new_target, 'damage'),
-            Image('game/panel/action_points', (290, self.y_shift + 10)),
-            Text((330, self.y_shift + 13), ACTION_POINTS_COLOR, new_target,
+            Image('game/panel/health', (10, self.y_shift + 10)),
+            Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
+            Image('game/panel/damage', (100, self.y_shift + 10)),
+            Text((140, self.y_shift + 13), DAMAGE_COLOR, self.target,
+                 'damage'),
+            Image('game/panel/action_points', (170, self.y_shift + 10)),
+            Text((210, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
 
