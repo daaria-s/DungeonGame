@@ -44,7 +44,10 @@ class Window:
             obj.show(surf)
 
         if config.CURRENT_WINDOW != config.NEXT_WINDOW:
-            if config.NEXT_WINDOW in WINDOW_TRANSFERS[config.CURRENT_WINDOW]:
+            if config.NEXT_WINDOW == 'save' and self.objects[0].user_name:
+                self.objects[0].update_base()
+                config.NEXT_WINDOW = config.CURRENT_WINDOW
+            elif config.NEXT_WINDOW in WINDOW_TRANSFERS[config.CURRENT_WINDOW]:
                 config.CURRENT_WINDOW = config.NEXT_WINDOW
             else:
                 if config.FADE_COUNTER == 0:
@@ -228,7 +231,11 @@ class Text(Element):
         if self.target and self.attr_name:
             # если есть объект класса игрок или враг и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
-            if self.target.name == 'player':
+            if self.target == config:
+                surf.blit(
+                    self.font.render(str(value), True, self.color),
+                    self.position)
+            elif self.target.name == 'player':
                 if self.attr_name == 'damage':
                     surf.blit(
                         self.font.render(str(value[0]), True, self.color),
@@ -453,6 +460,7 @@ class SaveButton(Button):
 
     def action(self):
         """Основное действие кнопки"""
+        print(config.INPUT_USER, config.users())
         if config.INPUT_USER and config.INPUT_USER not in config.users():
             self.obj.save(config.INPUT_USER)
             config.NEXT_WINDOW = self.target

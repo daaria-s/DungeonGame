@@ -4,7 +4,7 @@ from config import *
 import config
 import random
 from PIL import Image
-from interface import Button, Panel, Text, Element
+from interface import Button, Panel, Element
 import sqlite3
 import pygame
 
@@ -19,7 +19,6 @@ class Room:
 
         self.enemies = enemies
         self.objects = objects
-        self.opened = -1
 
     def enter_from_exit(self):  # трансформирует выход во вход для след двери
         if self.exit_[0] == 9:
@@ -41,7 +40,6 @@ class Room:
             map_[self.enter[0]][self.enter[1]] = self.num - 1
 
         map_[self.exit_[0]][self.exit_[1]] = self.num + 1
-        self.opened += 1
         return map_
 
 
