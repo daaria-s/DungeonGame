@@ -46,12 +46,12 @@ class Box(GameObject):
 
 class Chest(GameObject):
 
-    def __init__(self, position, object_, color=None):
+    def __init__(self, position, object_, color):
         super().__init__('chest', position, 'chest')
         if object_ == 'key':
             self.inside = Key(self.position, color)
         elif object_ == 'potion':
-            self.inside = Potion(self.position, 'green')
+            self.inside = Potion(self.position, color)
         self.stage = 0
 
     def touch(self):
@@ -62,6 +62,7 @@ class Chest(GameObject):
         elif self.stage == 1:
             self.inside.animator.start('die')
             self.stage += 1
+            self.name = 'empty'
             return self.inside.name
         else:
             return '__empty__'
@@ -83,9 +84,9 @@ class Door(GameObject):
         self.inside = None
         self.stage = 0
 
-    def touch(self, has_key):
+    def touch(self, has_key):  # попытка открыть дверь
         if self.stage == 0:
-            if has_key:
+            if has_key:  # если есть ключ нужного цвета
                 self.animator.start('die')
                 self.stage += 1
         else:
@@ -102,5 +103,5 @@ class Key(GameObject):
 
 class Potion(GameObject):
     def __init__(self, position, color):
-        super().__init__('potions/' + color, position, 'health')
-        self.color = color
+        super().__init__('potions/' + color, position, color + '_potion')
+        self.color = color  # цвет зелья

@@ -36,11 +36,16 @@ NEXT_WINDOW = 'menu'
 MAX_FADE_COUNTER = 120
 FADE_COUNTER = MAX_FADE_COUNTER
 
-DATABASE_NAME = 'dungeonBase.db'
-con_ = sqlite3.connect(DATABASE_NAME)
-cur_ = con_.cursor()
-USERS = list(map(lambda x: x[0],
-                 cur_.execute("""SELECT user_name FROM users""").fetchall()))
-N, MAX_N = 0, len(USERS)
-USER_NAME = USERS[N] if USERS else None
+
+def users():
+    con = sqlite3.connect('dungeonBase.db')
+    cur = con.cursor()
+    users_ = list(map(lambda x: x[0], cur.execute(
+        """SELECT user_name FROM users""").fetchall()))
+    con.close()
+    return users_
+
+
+N, MAX_N = 0, len(users())
+USER_NAME = users()[N] if users() else None
 INPUT_USER = ''

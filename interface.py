@@ -3,7 +3,7 @@ import config
 import sys
 from functions import *
 import pygame
-from entity import Player
+from entity import Player, Enemy
 
 
 class Window:
@@ -116,7 +116,6 @@ class Button(AnimatedElement):
 
     def __init__(self, name, position, target, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
-        self.hotkey = name.split('/')[-1][0]
         self.target = target  # имя окна, в которое мы перейдем,
         # если нажмем на эту кнопку
 
@@ -227,7 +226,7 @@ class Text(Element):
         if self.target and self.attr_name:
             # если есть объект класса игрок и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
-            if isinstance(self.target, Player):
+            if isinstance(self.target, (Player, Enemy)):
                 surf.blit(
                     self.font.render(str(value[0]) + '/' + str(value[1]), True,
                                      self.color),
@@ -328,8 +327,12 @@ class Inventory(Element):
                 'This key open green doors'),
             'blue_key': (load_image('Sprites/inventory/blue_key.png'),
                          'This key open blue doors'),
-            'health': (load_image('Sprites/inventory/green_potion.png'),
-                       'This potion heals you')
+            'green_potion': (load_image('Sprites/inventory/green_potion.png'),
+                             'This potion heals you'),
+            'red_potion': (load_image('Sprites/inventory/red_potion.png'),
+                           'This potion heals you'),
+            'blue_potion': (load_image('Sprites/inventory/blue_potion.png'),
+                            'This potion heals you')
         }
 
         self.target = target
@@ -419,8 +422,10 @@ class Arrow(Button):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
             music.play_sound('button_down')  # проигрываем звук нажатия
-            config.N = (config.N + self.function) % config.MAX_N
-            config.USER_NAME = config.USERS[config.N] if config.USERS else None
+            if config.users():
+                max_n = len(config.users())
+                config.N = (config.N + self.function) % max_n
+                config.USER_NAME = config.users()[config.N]
 
 
 class SaveButton(Button):
@@ -432,7 +437,7 @@ class SaveButton(Button):
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if self.obj.user_name not in config.USERS:
+            if config.INPUT_USER and config.INPUT_USER not in config.users():
                 self.obj.save(config.INPUT_USER)
                 config.NEXT_WINDOW = self.target
 
