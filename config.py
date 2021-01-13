@@ -1,5 +1,6 @@
 from music import Music
 import sqlite3
+import pygame
 
 WIDTH, HEIGHT = SIZE = 600, 600
 FPS = 60
@@ -50,3 +51,19 @@ DATABASE = 'dungeonBase.db'
 N, MAX_N = 0, len(users())
 USER_NAME = users()[N] if users() else None
 INPUT_USER = ''
+
+
+def apply(position):
+    """Сдвигает координаты на высоту верхней панели"""
+    return position[0], position[1] + PANEL_HEIGHT
+
+
+def load_image(name):
+    """Загружает изображение"""
+    return pygame.image.load(name).convert_alpha()
+
+
+def convert_coordinates(position):
+    if position[0] in (0, 9):
+        return abs(position[0] - 9), position[1]
+    return position[0], abs(position[1] - 11)

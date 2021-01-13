@@ -1,7 +1,7 @@
 from animator import Animator
 import config
 import sys
-from functions import *
+from config import *
 import pygame
 from entity import Player, Enemy
 

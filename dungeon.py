@@ -1,6 +1,6 @@
 from objects import *
 from entity import Player, Enemy
-from functions import *
+from config import *
 import random
 from PIL import Image
 from interface import Panel, Button, Element

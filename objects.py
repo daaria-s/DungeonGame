@@ -1,5 +1,5 @@
 from animator import Animator
-from functions import *
+from config import *
 
 
 class GameObject:
