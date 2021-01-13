@@ -58,13 +58,13 @@ class Dungeon(Element):
         self.objects = []
         self.base = []
         self.entities = []
-        self.elements = []
+        self.buttons = []
         self.user_name = ''
         self.con = sqlite3.connect(DATABASE)
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 100)
+        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 255)
         self.current_room = 1
         self.turn = 1
 
@@ -77,13 +77,13 @@ class Dungeon(Element):
         self.objects = []
         self.base = []
         self.entities = []
-        self.elements = []
+        self.buttons = []
         self.user_name = ''
         self.first = True
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 100)
+        self.player = Player((1, 1), 5, 5, 1, 1, 3, 3, 0, 255)
         self.current_room = 1
         self.turn = 1
 
@@ -139,11 +139,10 @@ class Dungeon(Element):
 
         self.top_panel = Panel(self.player, 0)  # создаем верхнюю
         self.bottom_panel = Panel(None, 550)  # и нижнюю панели
-        self.elements = [  # создаем кнопки и поле для опыта
+        self.buttons = [  # создаем кнопки
             Button('game/panel/exit', (550, 10), 'menu'),
             Button('game/panel/inventory', (450, 10), 'inventory'),
             Button('game/panel/save', (500, 10), 'save'),
-            Text((370, 13), EXPERIENCE_COLOR, self.player, 'experience'),
         ]
 
     def generate_enemies(self, room):
@@ -422,7 +421,7 @@ class Dungeon(Element):
         """Возвращает объект по координатам"""
         for obj in [*self.entities, *self.objects, *self.base]:
             if obj.position == (coordinates[0] + diff[1],
-                                   coordinates[1] + diff[0]):
+                                coordinates[1] + diff[0]):
                 if getattr(obj, 'alive', True):
                     return obj
 
@@ -455,7 +454,7 @@ class Dungeon(Element):
         obj_name = obj.name
         self.player.interaction(self, buttons_keys[button])
         if obj_name == 'enemy' and not obj.alive:
-            self.player.experience[0] += 66
+            self.player.experience[0] += 1
             if self.player.experience[0] > self.player.experience[1]:
                 config.NEXT_WINDOW = 'win'
 
@@ -534,7 +533,7 @@ class Dungeon(Element):
         self.top_panel.show(surf)  # отображаем верхнюю
         self.bottom_panel.show(surf)  # и нижнюю панели
 
-        for elem in self.elements:  # отображаем кнопки
+        for elem in self.buttons:  # отображаем кнопки
             elem.show(surf)
 
     def button_down(self, mouse_pos):
@@ -547,12 +546,12 @@ class Dungeon(Element):
         else:
             self.bottom_panel.change_target(None)
 
-        for elem in self.elements:  # проверяем нажатие на кнопки
+        for elem in self.buttons:  # проверяем нажатие на кнопки
             elem.button_down(mouse_pos)
 
     def key_down(self, key):
         """Нажатие на клавиатуру"""
-        for elem in self.elements:
+        for elem in self.buttons:
             elem.key_down(key)
         if self.turn == 1:  # если ход игрока
             self.player_move(key)  # то вызываем функцию движения игрока

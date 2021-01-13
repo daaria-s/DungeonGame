@@ -264,13 +264,18 @@ class Panel(Element):
         self.objects = [
             Image('game/panel/health', (10, self.y_shift + 10)),
             Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
-            Image('game/panel/damage', (100, self.y_shift + 10)),
-            Text((140, self.y_shift + 13), DAMAGE_COLOR, self.target,
+            Image('game/panel/damage', (110, self.y_shift + 10)),
+            Text((150, self.y_shift + 13), DAMAGE_COLOR, self.target,
                  'damage'),
-            Image('game/panel/action_points', (170, self.y_shift + 10)),
-            Text((210, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
+            Image('game/panel/action_points', (190, self.y_shift + 10)),
+            Text((230, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
+        if self.target:
+            self.objects.extend([
+                Image('game/panel/experience', (280, self.y_shift + 10)),
+                Text((320, 13), EXPERIENCE_COLOR, self.target, 'experience'),
+            ])
 
     def show(self, surf):
         """Отображение на поверхности"""
@@ -286,11 +291,11 @@ class Panel(Element):
         self.objects = [
             Image('game/panel/health', (10, self.y_shift + 10)),
             Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
-            Image('game/panel/damage', (100, self.y_shift + 10)),
-            Text((140, self.y_shift + 13), DAMAGE_COLOR, self.target,
+            Image('game/panel/damage', (110, self.y_shift + 10)),
+            Text((150, self.y_shift + 13), DAMAGE_COLOR, self.target,
                  'damage'),
-            Image('game/panel/action_points', (170, self.y_shift + 10)),
-            Text((210, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
+            Image('game/panel/action_points', (200, self.y_shift + 10)),
+            Text((240, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
 
