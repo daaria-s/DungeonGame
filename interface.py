@@ -61,6 +61,7 @@ class Window:
         surf.blit(self.fader, (0, 0))
 
     def update(self, surf, events):
+
         if self.name == 'exit':
             pygame.quit()
             sys.exit(1)
@@ -68,6 +69,7 @@ class Window:
             self.fade_out_counter = 0
             self.fade_target = 'lose'
             config.LOSE = False
+
         if self.first_load:
             if self.music_name != music.current_music:
                 music.play_music(self.music_name)
@@ -88,7 +90,6 @@ class Window:
                 self.first_load = True
                 if self.fade_target == 'lose' or self.fade_target == 'menu':
                     self.objects[0].new()  # обновляем подземелье
-
                 return self.fade_target
 
         if self.fade_in_counter != 0 or self.fade_out_counter != 61:

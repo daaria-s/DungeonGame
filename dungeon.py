@@ -6,7 +6,6 @@ from PIL import Image
 from interface import Panel, Button, Element
 import sqlite3
 import pygame
-import config
 
 
 class Room:
@@ -64,7 +63,7 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3, -1, 40)
         self.current_room = 1
         self.turn = 1
 
@@ -83,7 +82,7 @@ class Dungeon(Element):
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 
-        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3)
+        self.player = Player((1, 1), 10, 10, 1, 1, 3, 3, -1, 40)
         self.current_room = 1
         self.turn = 1
 
@@ -146,6 +145,7 @@ class Dungeon(Element):
         ]
 
     def generate_level(self, num):  # генерация уровня игры (карты)
+        self.player.experience[0] += 1
         closed_cells = [self.player.position]
         enter = (0, 0)
 
@@ -216,7 +216,7 @@ class Dungeon(Element):
             hit_points, max_hit_points, 
             damage, max_damage, 
             action_points, max_action_points,
-            posX, posY FROM users 
+            posX, posY, experience, max_experience FROM users 
             WHERE user_name = '{user_name}'""").fetchone()
         # все харастеристикик игрока
 
@@ -224,7 +224,8 @@ class Dungeon(Element):
             FROM inventory 
             WHERE user = '{user_name}' AND used = 'False'""")))
 
-        self.player = Player((player[-2], player[-1]), *player[1:-2])  # игрок
+        self.player = Player((player[-4], player[-3]), *player[1:-4],
+                             *player[-2:])  # игрок
 
         self.player.inventory = list(map(lambda x: x[0], cur.execute(f"""SELECT
             type FROM inventory 
@@ -321,7 +322,9 @@ class Dungeon(Element):
                     damage = {self.player.damage[0]}, 
                     max_damage = {self.player.damage[1]}, 
                     posX = {self.player.position[0]}, 
-                    posY = {self.player.position[1]}
+                    posY = {self.player.position[1]}, 
+                    experience = '{self.player.experience[0]}', 
+                    max_experience = '{self.player.experience[1]}'
                     WHERE user_name = '{self.user_name}'""")
         self.con.commit()
 
@@ -363,13 +366,14 @@ class Dungeon(Element):
             f"""INSERT INTO users(user_name, room_num, 
             hit_points, max_hit_points, 
             action_points, max_action_points,
-            damage, max_damage, posX, posY)
+            damage, max_damage, posX, posY, experience, max_experience)
             values('{self.user_name}', {self.current_room}, 
             {self.player.hit_points[0]}, {self.player.hit_points[1]}, 
             {self.player.action_points[0]}, {self.player.action_points[1]}, 
             {self.player.damage[0]},{self.player.damage[1]},
             {self.player.position[0]}, 
-            {self.player.position[1]})""")
+            {self.player.position[1]},
+            '{self.player.experience[0]}', '{self.player.experience[1]}')""")
         # добавление нового пользователя со всеми характеристиками
         self.con.commit()
 
