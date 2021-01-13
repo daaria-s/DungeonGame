@@ -115,6 +115,7 @@ class Dungeon(Element):
         self.load_room(self.current_room)
 
     def load_room(self, num_of_room):  # загрузка комнаты на экран
+        self.base = []
         level = self.rooms[num_of_room].structure()
         empty = Image.open('Sprites/ground/idle/00.png')
         wall = Image.open('Sprites/wall/idle/00.png')
