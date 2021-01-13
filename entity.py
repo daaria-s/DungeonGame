@@ -48,7 +48,6 @@ class Entity(GameObject):
             'wall': [lambda: False, []],
             'box': [self.interaction_box, [dungeon_, movement]],
             'chest': [self.interaction_chest, [target]],
-            'teleport': [self.interaction_teleport, [target]],
             'door': [self.interaction_door, [target]]
         }
         if keys[target.name][0](
@@ -183,6 +182,7 @@ class Player(Entity):
     def interaction_teleport(self, dungeon_):
         """Взаимодействие с телепортом"""
         # если игрок находится на входе или выходе
+
         if (self.position[1], self.position[0]) ==\
                 dungeon_.rooms[dungeon_.current_room].exit_:
             dungeon_.change_room(dungeon_.current_room + 1)

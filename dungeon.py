@@ -452,7 +452,7 @@ class Dungeon(Element):
         obj_name = obj.name
         self.player.interaction(self, buttons_keys[button])
         if obj_name == 'enemy' and not obj.alive:
-            self.player.experience[0] += 1
+            self.player.experience[0] += 2
             if self.player.experience[0] > self.player.experience[1]:
                 config.NEXT_WINDOW = 'win'
 
