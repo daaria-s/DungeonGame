@@ -116,18 +116,22 @@ class Button(AnimatedElement):
 
     def __init__(self, name, position, target, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
+        self.hotkey = name.split('/')[-1][0]
         self.target = target  # имя окна, в которое мы перейдем,
         # если нажмем на эту кнопку
 
+    def action(self):
+        """Осное действие кнопки"""
+        if self.target:
+            self.animator.start('idle')
+            # устанавливаем имя окна, в которое нужно перейти
+            config.NEXT_WINDOW = self.target
+
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
-        # если нажали на кнопку
         if self.rect.collidepoint(mouse_pos):
             music.play_sound('button_down')  # проигрываем звук нажатия
-            if self.target:
-                self.animator.start('idle')
-                # устанавливаем имя окна, в которое нужно перейти
-                config.NEXT_WINDOW = self.target
+            self.action()
 
     def mouse_motion(self, mouse_pos):
         """Функция движения мыши"""
@@ -138,12 +142,10 @@ class Button(AnimatedElement):
             self.animator.start('idle')  # иначе включаем анимацию покоя
 
     def key_down(self, key):
-        # если нажали на хоткей
-        if pygame.key.name(key) == self.hotkey:
+        """Функция нажатия на клавиатуру"""
+        if pygame.key.name(key) == self.hotkey:  # если нажали на хоткей
             music.play_sound('button_down')  # проигрываем звук нажатия
-            # устанавливаем имя окна, в которое нужно перейти
-            if self.target:
-                config.NEXT_WINDOW = self.target
+            self.action()
 
 
 class Image(AnimatedElement):
@@ -330,9 +332,9 @@ class Inventory(Element):
             'green_potion': (load_image('Sprites/inventory/green_potion.png'),
                              'This potion heals you'),
             'red_potion': (load_image('Sprites/inventory/red_potion.png'),
-                           'This potion heals you'),
+                           ''),
             'blue_potion': (load_image('Sprites/inventory/blue_potion.png'),
-                            'This potion heals you')
+                            '')
         }
 
         self.target = target
@@ -418,14 +420,12 @@ class Arrow(Button):
         self.function = function  # функция, которую надо выполнить при нажатии
         self.hotkey = name.split('/')[-1]
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            music.play_sound('button_down')  # проигрываем звук нажатия
-            if config.users():
-                max_n = len(config.users())
-                config.N = (config.N + self.function) % max_n
-                config.USER_NAME = config.users()[config.N]
+    def action(self):
+        """Основное действие кнопки"""
+        if config.users():
+            max_n = len(config.users())
+            config.N = (config.N + self.function) % max_n
+            config.USER_NAME = config.users()[config.N]
 
 
 class SaveButton(Button):
@@ -434,12 +434,11 @@ class SaveButton(Button):
         self.hotkey = 'return'  # у кнопки enter имя return
         self.obj = obj  # объект подземелья
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if config.INPUT_USER and config.INPUT_USER not in config.users():
-                self.obj.save(config.INPUT_USER)
-                config.NEXT_WINDOW = self.target
+    def action(self):
+        """Основное действие кнопки"""
+        if config.INPUT_USER and config.INPUT_USER not in config.users():
+            self.obj.save(config.INPUT_USER)
+            config.NEXT_WINDOW = self.target
 
 
 class LoadButton(Button):
@@ -447,9 +446,8 @@ class LoadButton(Button):
         super().__init__(name, position, target, animator_options)
         self.obj = obj  # объект подземелья
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if config.USER_NAME:
-                self.obj.load(config.USER_NAME)
-                config.NEXT_WINDOW = self.target
+    def action(self):
+        """Основное действие кнопки"""
+        if config.USER_NAME:
+            self.obj.load(config.USER_NAME)
+            config.NEXT_WINDOW = self.target

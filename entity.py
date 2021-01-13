@@ -1,6 +1,7 @@
 import config
 from objects import GameObject
 import random
+from config import *
 
 
 class Entity(GameObject):
@@ -69,6 +70,7 @@ class Entity(GameObject):
             self.position = obj.position
         else:  # если существо живо, то атакуем его
             self.animator.start('attack_' + self.get_direction(obj))
+            music.play_sound('hit')
             obj.get_hit(self.damage)
         return True
 
@@ -154,8 +156,10 @@ class Player(Entity):
         res = obj.touch()
         if res == '__empty__':
             self.interaction_empty(obj)
-        elif res:
-            self.new_inventory(res)
+        else:
+            music.play_sound('hit')
+            if res:
+                self.new_inventory(res)
         return True
 
     def interaction_door(self, obj):
@@ -163,6 +167,7 @@ class Player(Entity):
         res = obj.touch(obj.color + '_key' in self.inventory)
         if obj.color + '_key' in self.inventory:
             self.inventory.remove(obj.color + '_key')
+            music.play_sound('hit')
         if res == '__empty__':
             self.interaction_empty(obj)
         return True
