@@ -189,8 +189,7 @@ class Dungeon(Element):
                     random.randint(0, len(self.unused_keys) - 1))))
 
         self.rooms[num] = Room(exit_, self.enemies, self.objects,
-                               self.current_room,
-                               enter=enter)
+                               num, enter=enter)
 
     def load(self, user_name):
         con = sqlite3.connect('dungeonBase.db')
@@ -323,6 +322,8 @@ class Dungeon(Element):
         if button not in buttons_keys.keys():
             return  # если нажали на неизвестную кнопку
 
+        # проверяем на нахождение в телепорте
+        self.player.interaction_teleport(self)
         # взаимодействуем с объектом
         self.player.interaction(self, buttons_keys[button])
 

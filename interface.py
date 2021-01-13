@@ -372,16 +372,23 @@ class Inventory(Element):
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         self.base.button_down(mouse_pos)  # если нажали вне инвентаря
-        for i in range(len(self.slots)):
-            for k in range(len(self.slots[i])):  # если нажали на слот
-                if self.slots[i][k].button_down(mouse_pos):
-                    # то он становится активным
-                    self.active_slot = self.slots[i][k]
-                    return
-        self.active_slot = None  # опустошаем активный слот
+        # если выходим из инвентаря, то
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            self.active_slot = None  # опустошаем активный слот
+        else:
+            for i in range(len(self.slots)):
+                for k in range(len(self.slots[i])):  # если нажали на слот
+                    if self.slots[i][k].button_down(mouse_pos):
+                        # то он становится активным
+                        self.active_slot = self.slots[i][k]
+                        return
+            self.active_slot = None  # опустошаем активный слот
 
     def key_down(self, key):
         self.base.key_down(key)
+        # если выходим из инвентаря, то
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            self.active_slot = None  # опустошаем активный слот
 
 
 class InputBox(AnimatedElement):

@@ -146,10 +146,9 @@ class Player(Entity):
         res = obj.touch()
         if res == '__empty__':
             self.interaction_empty(obj)
-            return True
         elif res:
             self.new_inventory(res)
-            return True
+        return True
 
     def interaction_door(self, obj):
         self.animator.start('attack_' + self.get_direction(obj))

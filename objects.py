@@ -32,14 +32,6 @@ class Empty(GameObject):
         super().__init__('ground', position, 'empty')
 
 
-class Teleport(GameObject):
-    """Класс телепорта"""
-
-    def __init__(self, position, number):
-        super().__init__('ground', position, 'teleport')
-        self.number = number  # номер комнаты, в которую ведет этот телепорт
-
-
 class Box(GameObject):
     """Класс коробки"""
 
