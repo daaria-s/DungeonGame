@@ -59,7 +59,7 @@ class Dungeon(Element):
         self.entities = []
         self.buttons = []
         self.user_name = ''
-        self.con = sqlite3.connect('dungeonBase.db')
+        self.con = sqlite3.connect(DATABASE)
 
         self.background, self.top_panel, self.bottom_panel = None, None, None
 

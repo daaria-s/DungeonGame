@@ -38,7 +38,7 @@ FADE_COUNTER = MAX_FADE_COUNTER
 
 
 def users():
-    con = sqlite3.connect('dungeonBase.db')
+    con = sqlite3.connect(DATABASE)
     cur = con.cursor()
     users_ = list(map(lambda x: x[0], cur.execute(
         """SELECT user_name FROM users""").fetchall()))
@@ -46,6 +46,7 @@ def users():
     return users_
 
 
+DATABASE = 'dungeonBase.db'
 N, MAX_N = 0, len(users())
 USER_NAME = users()[N] if users() else None
 INPUT_USER = ''
