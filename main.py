@@ -53,6 +53,12 @@ if __name__ == '__main__':
             Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
             Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
         ], music_name='defeat'),
+        'win': Window('lose', [
+            Image('lose/background', (0, 0)),
+            Image('lose/lose_text', (196, 200)),
+            Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
+            Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
+        ], music_name='defeat'),
         'inventory': Window('inventory', [Inventory(dungeon)],
                             music_name='game'),
         'save': Window('save', [

@@ -51,8 +51,8 @@ class Entity(GameObject):
             'teleport': [self.interaction_teleport, [target]],
             'door': [self.interaction_door, [target]]
         }
-        # если взаимодействие прошло успешно
-        if keys[target.name][0](*keys[target.name][1]):
+        if keys[target.name][0](
+                *keys[target.name][1]):  # если взаимодействие прошло успешно
             self.action_points[0] -= 1  # уменьшаем количество очков действий
             # если закончился ход игрока
             if self.action_points[0] == 0 and dungeon_.turn == 1:
@@ -119,11 +119,12 @@ class Player(Entity):
     def __init__(self, position,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
-                 action_points, max_action_points):
+                 action_points, max_action_points, experience, max_experience):
         super().__init__(position, 'player', 'player',
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
+        self.experience = [experience, max_experience]
 
     def new_inventory(self, object_):
         if object_ == 'green_potion' and\
@@ -177,11 +178,26 @@ class Player(Entity):
         # если игрок находится на входе или выходе
         if (self.position[1], self.position[0]) ==\
                 dungeon_.rooms[dungeon_.current_room].exit_:
+            if self.experience[0] >= self.experience[1]:
+                config.WIN = True
             dungeon_.change_room(dungeon_.current_room + 1)
         elif dungeon_.current_room != 1 and \
                 (self.position[1], self.position[0]) == \
                 dungeon_.rooms[dungeon_.current_room].enter:
             dungeon_.change_room(dungeon_.current_room - 1)
+
+    def interaction_entity(self, obj):
+        """Взаимодействие с существами"""
+        # EDIT
+        if obj.hit_points[0] <= 0:
+            # если существо мертво, то просто перемещаемся в нужную точу
+            self.animator.start('move_' + self.get_direction(obj))
+            self.position = obj.position
+        else:  # если существо живо, то атакуем его
+            self.animator.start('attack_' + self.get_direction(obj))
+            self.experience[0] += 3
+            obj.get_hit(self.damage)
+        return True
 
     def die(self):
         super().die()
