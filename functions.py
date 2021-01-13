@@ -2,9 +2,9 @@ from config import *
 import pygame
 
 
-def apply(coords):
+def apply(position):
     """Сдвигает координаты на высоту верхней панели"""
-    return coords[0], coords[1] + PANEL_HEIGHT
+    return position[0], position[1] + PANEL_HEIGHT
 
 
 def load_image(name):

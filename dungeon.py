@@ -6,7 +6,6 @@ from PIL import Image
 from interface import Panel, Button, Element
 import sqlite3
 import pygame
-import config
 
 
 class Room:
@@ -219,13 +218,13 @@ class Dungeon(Element):
             WHERE user_name = '{user_name}'""").fetchone()
         # все харастеристикик игрока
 
-        self.unused_keys = list(map(lambda x: x[0], cur.execute(f"""SELECT type
+        self.unused_keys = list(map(lambda i: i[0], cur.execute(f"""SELECT type
             FROM inventory 
             WHERE user = '{user_name}' AND used = 'False'""")))
 
         self.player = Player((player[-2], player[-1]), *player[1:-2])  # игрок
 
-        self.player.inventory = list(map(lambda x: x[0], cur.execute(f"""SELECT
+        self.player.inventory = list(map(lambda i: i[0], cur.execute(f"""SELECT
             type FROM inventory 
             WHERE user = '{user_name}' AND used = 'True'""")))
         self.current_room = player[0]
@@ -244,20 +243,19 @@ class Dungeon(Element):
 
             list_of_enemies = []
             list_of_objects = []
-            for color, hit, max_hit, act, max_act, dam, \
-                max_dam, x, y in enemies:  # все враги на карте
+            # все враги на карте
+            for color, hit, m_hit, act, m_act, dam, m_dam, x, y in enemies:
                 list_of_enemies.append(
-                    Enemy((x, y), color, hit, max_hit, dam,
-                          max_dam, act, max_act))
+                    Enemy((x, y), color, hit, m_hit, dam, m_dam, act, m_act))
 
             objects = cur.execute(f"""SELECT type, posX, posY, inside, color 
                 FROM objects
                 WHERE room_id = {room_id}""").fetchall()
 
-            for type, x, y, inside, color in objects:  # все объекты на карте
-                if type == 1:  # коробки
+            for type_, x, y, inside, color in objects:  # все объекты на карте
+                if type_ == 1:  # коробки
                     list_of_objects.append(Box((x, y)))
-                elif type == 2:  # сундуки
+                elif type_ == 2:  # сундуки
                     list_of_objects.append(
                         Chest((x, y), *reversed(inside.split('_'))))
                 else:  # двери
@@ -469,7 +467,7 @@ class Dungeon(Element):
 
             while (enemy_pos[0] + diff[0],
                    enemy_pos[1] + diff[1]) in blocked_cells or \
-                self.get(enemy_pos, diff).name not in ('empty', 'player'):
+                    self.get(enemy_pos, diff).name not in ('empty', 'player'):
                 diff = options[random.randint(0, len(options) - 1)]
 
             blocked_cells.append(
