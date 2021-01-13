@@ -1,5 +1,4 @@
 import os
-from functions import *
 from config import *
 
 
@@ -43,11 +42,14 @@ class Animator:
                         self.start(self.animation)
                     else:
                         self.start('idle')
-        return self.animations[self.animation][self.counter], self.shift
         # возвращаем кадр и смещение
+        return self.animations[self.animation][self.counter], self.shift
 
     def start(self, name):
         """Начать новую анимацию"""
+        if name not in self.animations.keys():
+            return  # если такой анимации не существует
+
         self.animation = name  # меняем имя анимации
 
         # для некоторых анимаций необходимо смещение спрайта,

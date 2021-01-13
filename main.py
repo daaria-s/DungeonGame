@@ -53,6 +53,12 @@ if __name__ == '__main__':
             Button('lose/menu', (104, 300), 'menu', {'cycle': True}),
             Button('lose/new_game', (352, 300), 'game', {'cycle': True}),
         ], music_name='defeat'),
+        'win': Window('win', [
+            Image('win/background', (0, 0)),
+            Image('win/win_text', (196, 200)),
+            Button('win/menu', (104, 300), 'menu', {'cycle': True}),
+            Button('win/new_game', (352, 300), 'game', {'cycle': True}),
+        ], music_name='victory'),
         'inventory': Window('inventory', [Inventory(dungeon)],
                             music_name='game'),
         'save': Window('save', [
@@ -65,12 +71,10 @@ if __name__ == '__main__':
 
     }
 
-    current_window = windows['menu']  # устанавливает текущее окно
     clock = pygame.time.Clock()
     while True:  # бесконечный игровой цикл
         # обновляем окно и делаем отрисовку
         # в зависимости от произошедших событий
-        current_window = windows[
-            current_window.update(screen, pygame.event.get())]
+        windows[config.CURRENT_WINDOW].update(screen, pygame.event.get())
         pygame.display.flip()  # обновление экрана
         clock.tick(FPS)  # задержка

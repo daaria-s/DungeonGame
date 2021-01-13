@@ -1,9 +1,8 @@
 from animator import Animator
 import config
 import sys
-from functions import *
+from config import *
 import pygame
-from entity import Player
 
 
 class Window:
@@ -13,81 +12,62 @@ class Window:
         self.name = name
         self.objects = objects
         self.music_name = music_name
-        self.important_windows = ['menu', 'game', 'exit', 'lose']
-        self.first_load = True
-
-        self.fade_in_counter = 0
-        self.fade_out_counter = 61
-        self.fade_target = None
 
         self.fader = pygame.Surface(SIZE)
         self.fader.fill(BLACK)
 
-    def get_event(self, events):
+    def handle_events(self, events):
+        event_handlers = {
+            pygame.KEYDOWN: ['key_down', 'key'],
+            pygame.MOUSEBUTTONDOWN: ['button_down', 'pos'],
+            pygame.MOUSEBUTTONUP: ['button_up', 'pos'],
+            pygame.MOUSEMOTION: ['mouse_motion', 'pos'],
+        }
         for event in events:
-            if event.type == pygame.QUIT:
+            if self.name == 'exit' or event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
+            elif event.type in event_handlers.keys():
+                options = event_handlers[event.type]
                 for obj in self.objects:
-                    obj.key_down(event.key)
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                for obj in self.objects:
-                    target = obj.button_down(event.pos)
-                    if target:
-                        if target in self.important_windows \
-                                and self.name in self.important_windows:
-                            self.fade_target = target
-                            self.fade_out_counter = 0
-                        else:
-                            return target
-            elif event.type == pygame.MOUSEBUTTONUP:
-                for obj in self.objects:
-                    obj.button_up(event.pos)
-            elif event.type == pygame.MOUSEMOTION:
-                for obj in self.objects:
-                    obj.mouse_motion(event.pos)
+                    getattr(obj, options[0])(getattr(event, options[1]))
 
-        self.first_load = False
-        return self.name
-
-    def fade(self, surf, value):
-        self.fader.set_alpha(int(value * 4.25))
+    def fade(self, surf):
+        value = -1 * abs(
+            config.FADE_COUNTER - config.MAX_FADE_COUNTER // 2) + \
+                config.MAX_FADE_COUNTER // 2
+        self.fader.set_alpha(int(4.25 * value))
         surf.blit(self.fader, (0, 0))
 
     def update(self, surf, events):
-        if self.name == 'exit':
-            pygame.quit()
-            sys.exit(1)
-        if config.LOSE:
-            self.fade_out_counter = 0
-            self.fade_target = 'lose'
-            config.LOSE = False
-        if self.first_load:
-            if self.music_name != music.current_music:
-                music.play_music(self.music_name)
-            if self.name in self.important_windows:
-                self.fade_in_counter = 60
-            self.first_load = False
-
         for obj in self.objects:
             obj.show(surf)
 
-        if self.fade_in_counter != 0:
-            self.fade(surf, self.fade_in_counter)
-            self.fade_in_counter -= 1
-        elif self.fade_out_counter != 61:
-            self.fade(surf, self.fade_out_counter)
-            self.fade_out_counter += 1
-            if self.fade_out_counter == 61:
-                self.first_load = True
-                if self.fade_target == 'lose' or self.fade_target == 'menu':
-                    self.objects[0].new()  # обновляем подземелье
-                return self.fade_target
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            if config.NEXT_WINDOW == 'save' and self.objects[0].user_name:
+                self.objects[0].update_base()
+                config.NEXT_WINDOW = config.CURRENT_WINDOW
+            elif config.NEXT_WINDOW in WINDOW_TRANSFERS[config.CURRENT_WINDOW]:
+                config.CURRENT_WINDOW = config.NEXT_WINDOW
+            else:
+                if config.FADE_COUNTER == 0:
+                    config.FADE_COUNTER = config.MAX_FADE_COUNTER
+                self.fade(surf)
+                config.FADE_COUNTER -= 1
+                if config.FADE_COUNTER == 59:
+                    if config.CURRENT_WINDOW == 'game' and \
+                            (config.NEXT_WINDOW in ['menu', 'lose', 'win']):
+                        self.objects[0].new()  # обновляем подземелье
+                    config.CURRENT_WINDOW, config.NEXT_WINDOW = \
+                        config.NEXT_WINDOW, config.CURRENT_WINDOW
+                elif config.FADE_COUNTER == 58:  # first window load
+                    if music.current_music != self.music_name:
+                        music.play_music(self.music_name)
+                elif config.FADE_COUNTER == 0:
+                    config.NEXT_WINDOW = config.CURRENT_WINDOW
 
-        if self.fade_in_counter != 0 or self.fade_out_counter != 61:
-            return self.name
-        return self.get_event(events)
+        else:
+            self.handle_events(events)
 
 
 class Element:
@@ -139,16 +119,22 @@ class Button(AnimatedElement):
 
     def __init__(self, name, position, target, animator_options=None):
         super().__init__('Sprites/' + name, position, animator_options)
+        self.hotkey = name.split('/')[-1][0]
         self.target = target  # имя окна, в которое мы перейдем,
         # если нажмем на эту кнопку
 
+    def action(self):
+        """Осное действие кнопки"""
+        if self.target:
+            self.animator.start('idle')
+            # устанавливаем имя окна, в которое нужно перейти
+            config.NEXT_WINDOW = self.target
+
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
-        # если нажали на кнопку
-        if self.rect.collidepoint(mouse_pos) and self.target:
+        if self.rect.collidepoint(mouse_pos):
             music.play_sound('button_down')  # проигрываем звук нажатия
-            self.animator.start('idle')
-            return self.target  # возвращаем имя окна, в которое нужно перейти
+            self.action()
 
     def mouse_motion(self, mouse_pos):
         """Функция движения мыши"""
@@ -158,6 +144,12 @@ class Button(AnimatedElement):
         else:
             self.animator.start('idle')  # иначе включаем анимацию покоя
 
+    def key_down(self, key):
+        """Функция нажатия на клавиатуру"""
+        if pygame.key.name(key) == self.hotkey:  # если нажали на хоткей
+            music.play_sound('button_down')  # проигрываем звук нажатия
+            self.action()
+
 
 class Image(AnimatedElement):
     """Класс изображения"""
@@ -166,18 +158,18 @@ class Image(AnimatedElement):
         super().__init__('Sprites/' + name, position, animator_options)
 
 
-class AntiButton(AnimatedElement):
+class AntiButton(Button):
     """Класс анти-кнопки"""
 
-    def __init__(self, name, position, target):
-        super().__init__('Sprites/' + name, position)
-        self.target = target  # имя окна, в которое мы перейдем,
-        # если нажмем на вне этой кнопки
+    def __init__(self, name, position, target, animator_options=None):
+        super().__init__(name, position, target, animator_options)
+        self.hotkey = 'space'  # хоткей
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
         if not self.rect.collidepoint(mouse_pos):  # если нажали не на кнопку
-            return self.target  # возвращаем имя окна, в которое нужно перейти
+            # устанавливаем имя окна, в которое нужно перейти
+            config.NEXT_WINDOW = self.target
 
 
 class Slider(AnimatedElement):
@@ -206,17 +198,18 @@ class Slider(AnimatedElement):
         if self.capture:  # если слайдер зажат
             # то двигаем его, не выходя за границы
             if self.borders[0] <= mouse_pos[0] <= self.borders[1]:
-                x = mouse_pos[0]
+                x_pos = mouse_pos[0]
             elif mouse_pos[0] < self.borders[0]:
-                x = self.borders[0]
+                x_pos = self.borders[0]
             elif mouse_pos[0] > self.borders[1]:
-                x = self.borders[1]
-            self.position = (x, self.position[1])  # меняем позицию
+                x_pos = self.borders[1]
+            self.position = (x_pos, self.position[1])  # меняем позицию
             self.rect = self.animator.next_()[0].get_rect(
                 topleft=self.position)  # и прямоугольник
             # вызываем функцию, привязанную к изменению значения слайдера
-            getattr(music, self.function)(
-                (x - self.borders[0]) / (self.borders[1] - self.borders[0]))
+            value = (x_pos - self.borders[0]) / (self.borders[1] -
+                                                 self.borders[0])
+            getattr(music, self.function)(value)
 
 
 class Text(Element):
@@ -236,18 +229,30 @@ class Text(Element):
     def show(self, surf):
         """Отображение на поверхности"""
         if self.target and self.attr_name:
-            # если есть объект класса игрок и его атрибут
+            # если есть объект класса игрок или враг и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
-            if isinstance(self.target, Player):
+            if self.target == config:
                 surf.blit(
-                    self.font.render(str(value[0]) + '/' + str(value[1]), True,
-                                     self.color),
+                    self.font.render(str(value), True, self.color),
                     self.position)
-            else:
+            elif self.target.name == 'player':
+                if self.attr_name == 'damage':
+                    surf.blit(
+                        self.font.render(str(value[0]), True, self.color),
+                        self.position)
+                else:
+                    surf.blit(
+                        self.font.render(str(value[0]) + '/' + str(value[1]),
+                                         True, self.color), self.position)
+            elif self.target.name == 'enemy':
+                if self.attr_name == 'damage':
+                    delimiter = '-'
+                else:
+                    delimiter = '/'
                 surf.blit(
-                    self.font.render(value, True,
-                                     self.color),
-                    self.position)
+                    self.font.render(str(value[0]) + delimiter + str(value[1]),
+                                     True, self.color), self.position)
+
         elif self.text:  # если есть статичный текст, то отбражаем его
             surf.blit(self.font.render(str(self.text), True, self.color),
                       self.position)
@@ -260,18 +265,24 @@ class Panel(Element):
 
     def __init__(self, target, y_shift):
         super().__init__()
-        self.background = Image('game/panel/background', (0, y_shift + 0))
+        self.background = Image('game/panel/background', (0, y_shift))
         self.target = target
         self.y_shift = y_shift
         self.objects = [
-            Image('game/panel/health', (50, y_shift + 10)),
-            Text((90, y_shift + 13), HP_COLOR, target, 'hit_points'),
-            Image('game/panel/damage', (170, y_shift + 10)),
-            Text((210, y_shift + 13), DAMAGE_COLOR, target, 'damage'),
-            Image('game/panel/action_points', (290, y_shift + 10)),
-            Text((330, y_shift + 13), ACTION_POINTS_COLOR, target,
+            Image('game/panel/health', (10, self.y_shift + 10)),
+            Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
+            Image('game/panel/damage', (110, self.y_shift + 10)),
+            Text((150, self.y_shift + 13), DAMAGE_COLOR, self.target,
+                 'damage'),
+            Image('game/panel/action_points', (190, self.y_shift + 10)),
+            Text((230, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
+        if self.target:
+            self.objects.extend([
+                Image('game/panel/experience', (280, self.y_shift + 10)),
+                Text((320, 13), EXPERIENCE_COLOR, self.target, 'experience'),
+            ])
 
     def show(self, surf):
         """Отображение на поверхности"""
@@ -285,12 +296,13 @@ class Panel(Element):
     def change_target(self, new_target):
         self.target = new_target
         self.objects = [
-            Image('game/panel/health', (50, self.y_shift + 10)),
-            Text((90, self.y_shift + 13), HP_COLOR, new_target, 'hit_points'),
-            Image('game/panel/damage', (170, self.y_shift + 10)),
-            Text((210, self.y_shift + 13), DAMAGE_COLOR, new_target, 'damage'),
-            Image('game/panel/action_points', (290, self.y_shift + 10)),
-            Text((330, self.y_shift + 13), ACTION_POINTS_COLOR, new_target,
+            Image('game/panel/health', (10, self.y_shift + 10)),
+            Text((50, self.y_shift + 13), HP_COLOR, self.target, 'hit_points'),
+            Image('game/panel/damage', (110, self.y_shift + 10)),
+            Text((150, self.y_shift + 13), DAMAGE_COLOR, self.target,
+                 'damage'),
+            Image('game/panel/action_points', (200, self.y_shift + 10)),
+            Text((240, self.y_shift + 13), ACTION_POINTS_COLOR, self.target,
                  'action_points'),
         ]
 
@@ -329,8 +341,8 @@ class Inventory(Element):
 
     def __init__(self, target):
         super().__init__()
-        self.base = AntiButton('game/inventory', (97, 97),
-                               'game')  # изображения инвентаря
+        # изображение инвентаря
+        self.base = AntiButton('game/inventory', (97, 97), 'game')
 
         # словарь вида {названия содержимого в инвентаре: [картинка, описание]}
         self.image_keys = {
@@ -341,8 +353,12 @@ class Inventory(Element):
                 'This key open green doors'),
             'blue_key': (load_image('Sprites/inventory/blue_key.png'),
                          'This key open blue doors'),
-            'health': (load_image('Sprites/inventory/green_potion.png'),
-                       'This potion heals you')
+            'green_potion': (load_image('Sprites/inventory/green_potion.png'),
+                             'This potion heals you'),
+            'red_potion': (load_image('Sprites/inventory/red_potion.png'),
+                           ''),
+            'blue_potion': (load_image('Sprites/inventory/blue_potion.png'),
+                            '')
         }
 
         self.target = target
@@ -384,16 +400,24 @@ class Inventory(Element):
 
     def button_down(self, mouse_pos):
         """Функция нажатия мыши"""
-        res = self.base.button_down(mouse_pos)  # если нажали вне инвентаря
-        if res:
-            return res  # то переходим в игру
-        for i in range(len(self.slots)):
-            for k in range(len(self.slots[i])):  # если нажали на слот
-                if self.slots[i][k].button_down(mouse_pos):
-                    self.active_slot = self.slots[i][
-                        k]  # то он становится активным
-                    return
-        self.active_slot = None  # опустошаем активный слот
+        self.base.button_down(mouse_pos)  # если нажали вне инвентаря
+        # если выходим из инвентаря, то
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            self.active_slot = None  # опустошаем активный слот
+        else:
+            for i in range(len(self.slots)):
+                for k in range(len(self.slots[i])):  # если нажали на слот
+                    if self.slots[i][k].button_down(mouse_pos):
+                        # то он становится активным
+                        self.active_slot = self.slots[i][k]
+                        return
+            self.active_slot = None  # опустошаем активный слот
+
+    def key_down(self, key):
+        self.base.key_down(key)
+        # если выходим из инвентаря, то
+        if config.CURRENT_WINDOW != config.NEXT_WINDOW:
+            self.active_slot = None  # опустошаем активный слот
 
 
 class InputBox(AnimatedElement):
@@ -418,38 +442,37 @@ class Arrow(Button):
     def __init__(self, name, position, function, animator_options=None):
         super().__init__(name, position, None, animator_options)
         self.function = function  # функция, которую надо выполнить при нажатии
+        self.hotkey = name.split('/')[-1]
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            music.play_sound('button_down')  # проигрываем звук нажатия
-            config.N = (config.N + self.function) % config.MAX_N
-            config.USER_NAME = config.USERS[config.N] if config.USERS else None
+    def action(self):
+        """Основное действие кнопки"""
+        if config.users():
+            max_n = len(config.users())
+            config.N = (config.N + self.function) % max_n
+            config.USER_NAME = config.users()[config.N]
 
 
 class SaveButton(Button):
     def __init__(self, name, position, target, obj, animator_options=None):
         super().__init__(name, position, target, animator_options)
+        self.hotkey = 'return'  # у кнопки enter имя return
         self.obj = obj  # объект подземелья
-        self.target = target
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if self.obj.user_name not in config.USERS:
-                self.obj.save(config.INPUT_USER)
-                return self.target
+    def action(self):
+        """Основное действие кнопки"""
+        print(config.INPUT_USER, config.users())
+        if config.INPUT_USER and config.INPUT_USER not in config.users():
+            self.obj.save(config.INPUT_USER)
+            config.NEXT_WINDOW = self.target
 
 
 class LoadButton(Button):
     def __init__(self, name, position, target, obj, animator_options=None):
         super().__init__(name, position, target, animator_options)
         self.obj = obj  # объект подземелья
-        self.target = target
 
-    def button_down(self, mouse_pos):
-        """Функция нажатия мыши"""
-        if self.rect.collidepoint(mouse_pos):  # если нажали на кнопку
-            if config.USER_NAME:
-                self.obj.load(config.USER_NAME)
-                return self.target
+    def action(self):
+        """Основное действие кнопки"""
+        if config.USER_NAME:
+            self.obj.load(config.USER_NAME)
+            config.NEXT_WINDOW = self.target

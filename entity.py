@@ -1,6 +1,7 @@
 import config
 from objects import GameObject
 import random
+from config import *
 
 
 class Entity(GameObject):
@@ -53,13 +54,12 @@ class Entity(GameObject):
         if keys[target.name][0](
                 *keys[target.name][1]):  # если взаимодействие прошло успешно
             self.action_points[0] -= 1  # уменьшаем количество очков действий
-            if self.action_points[0] == 0 and\
-                    dungeon_.turn == 1:  # если закончился ход игрока
-                self.action_points[0] = self.action_points[
-                    1]  # то передаем ход врагам
-                dungeon_.turn = 2
-            return True
+            # если закончился ход игрока
+            if self.action_points[0] == 0 and dungeon_.turn == 1:
+                self.action_points[0] = self.action_points[1]
+                dungeon_.turn = 2  # то передаем ход врагам
             # возвращаем True для индикации успещности взаимодействия
+            return True
 
     def interaction_entity(self, obj):
         """Взаимодействие с существами"""
@@ -70,6 +70,7 @@ class Entity(GameObject):
             self.position = obj.position
         else:  # если существо живо, то атакуем его
             self.animator.start('attack_' + self.get_direction(obj))
+            music.play_sound('hit')
             obj.get_hit(self.damage)
         return True
 
@@ -99,15 +100,16 @@ class Entity(GameObject):
         # отнимаем случайное количество жизней в рамках урона
         self.hit_points[0] -= random.randint(damage[0], damage[1])
         if self.inventory:
-            if 'health' in self.inventory:
+            if 'green_potion' in self.inventory:
                 self.hit_points[0] += 1
-                self.inventory.remove('health')
+                self.inventory.remove('green_potion')
         if self.hit_points[0] <= 0:
             self.die()
 
     def die(self):
         """Смерть существа"""
         self.alive = False
+        self.name = 'empty'
         self.animator.start('die')  # включаем анимацию смерти
 
 
@@ -117,15 +119,29 @@ class Player(Entity):
     def __init__(self, position,
                  hit_points, max_hit_points,
                  min_damage, max_damage,
-                 action_points, max_action_points):
+                 action_points, max_action_points, experience, max_experience):
         super().__init__(position, 'player', 'player',
                          hit_points, max_hit_points,
                          min_damage, max_damage,
                          action_points, max_action_points)
+        self.experience = [experience, max_experience]
 
     def new_inventory(self, object_):
-        if object_ == 'health' and self.hit_points[0] < self.hit_points[1]:
+        if object_ == 'green_potion' and\
+                self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
+        elif object_ == 'red_potion':
+            self.damage[0] += 1
+            self.damage[1] += 1
+            # максимум 3 урона
+            if self.damage[0] == 4:
+                self.damage[0] = 3
+                self.damage[1] = 3
+        elif object_ == 'blue_potion':
+            self.action_points[1] += 1
+            # максимум 9 очков действий
+            if self.action_points[1] == 10:
+                self.action_points[1] = 9
         elif len(self.inventory) < 20:
             self.inventory.append(object_)
 
@@ -143,37 +159,41 @@ class Player(Entity):
             return True
 
     def interaction_chest(self, obj):
+        """Взаимодействие с сундуком"""
         self.animator.start('attack_' + self.get_direction(obj))
         res = obj.touch()
         if res == '__empty__':
             self.interaction_empty(obj)
-            return True
-        elif res:
-            self.new_inventory(res)
-            return True
+        else:
+            music.play_sound('hit')
+            if res:
+                self.new_inventory(res)
+        return True
 
     def interaction_door(self, obj):
         self.animator.start('attack_' + self.get_direction(obj))
         res = obj.touch(obj.color + '_key' in self.inventory)
         if obj.color + '_key' in self.inventory:
             self.inventory.remove(obj.color + '_key')
+            music.play_sound('hit')
         if res == '__empty__':
             self.interaction_empty(obj)
         return True
 
-    def interaction_teleport(self, obj):
+    def interaction_teleport(self, dungeon_):
         """Взаимодействие с телепортом"""
+        # если игрок находится на входе или выходе
         if (self.position[1], self.position[0]) ==\
-                obj.rooms[obj.current_room].exit_:
-            obj.change_room(obj.current_room + 1)
-        elif obj.current_room != 1 and \
+                dungeon_.rooms[dungeon_.current_room].exit_:
+            dungeon_.change_room(dungeon_.current_room + 1)
+        elif dungeon_.current_room != 1 and \
                 (self.position[1], self.position[0]) == \
-                obj.rooms[obj.current_room].enter:
-            obj.change_room(obj.current_room - 1)
+                dungeon_.rooms[dungeon_.current_room].enter:
+            dungeon_.change_room(dungeon_.current_room - 1)
 
     def die(self):
         super().die()
-        config.LOSE = True
+        config.NEXT_WINDOW = 'lose'
 
 
 class Enemy(Entity):
