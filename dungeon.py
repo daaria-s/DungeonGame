@@ -463,7 +463,7 @@ class Dungeon(Element):
         self.player.interaction_teleport(self)
         # взаимодействуем с объектом
         obj = self.get(self.player.position, buttons_keys[button])
-        obj_name = obj.name
+        obj_name = obj.name if hasattr(obj, 'name') else None
         self.player.interaction(self, buttons_keys[button])
         if obj_name == 'enemy' and not obj.alive:
             self.player.experience[0] += 2
