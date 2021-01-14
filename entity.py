@@ -99,7 +99,8 @@ class Entity(GameObject):
         # отнимаем случайное количество жизней в рамках урона
         self.hit_points[0] -= random.randint(damage[0], damage[1])
         if self.inventory:
-            if 'green_potion' in self.inventory:
+            while 'green_potion' in self.inventory and self.hit_points[0] < \
+                    self.hit_points[1]:
                 self.hit_points[0] += 1
                 self.inventory.remove('green_potion')
         if self.hit_points[0] <= 0:
@@ -126,7 +127,7 @@ class Player(Entity):
         self.experience = [experience, max_experience]
 
     def new_inventory(self, object_):
-        if object_ == 'green_potion' and\
+        if object_ == 'green_potion' and \
                 self.hit_points[0] < self.hit_points[1]:
             self.hit_points[0] += 1
         elif object_ == 'red_potion':
@@ -170,9 +171,10 @@ class Player(Entity):
         return True
 
     def interaction_door(self, obj):
+        """Взаимодействие с дверью"""
         self.animator.start('attack_' + self.get_direction(obj))
         res = obj.touch(obj.color + '_key' in self.inventory)
-        if obj.color + '_key' in self.inventory:
+        if obj.color + '_key' in self.inventory:  # если есть подходящий ключ
             self.inventory.remove(obj.color + '_key')
             music.play_sound('hit')
         if res == '__empty__':
@@ -183,7 +185,7 @@ class Player(Entity):
         """Взаимодействие с телепортом"""
         # если игрок находится на входе или выходе
 
-        if (self.position[1], self.position[0]) ==\
+        if (self.position[1], self.position[0]) == \
                 dungeon_.rooms[dungeon_.current_room].exit_:
             dungeon_.change_room(dungeon_.current_room + 1)
         elif dungeon_.current_room != 1 and \

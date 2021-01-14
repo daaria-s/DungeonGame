@@ -51,7 +51,7 @@ def users():
 
 DATABASE = 'dungeonBase.db'
 N, MAX_N = 0, len(users())
-USER_NAME = users()[N] if users() else None
+USER_NAME = users()[N] if users() else ''
 INPUT_USER = ''
 
 
@@ -63,9 +63,3 @@ def apply(position):
 def load_image(name):
     """Загружает изображение"""
     return pygame.image.load(name).convert_alpha()
-
-
-def convert_coordinates(position):
-    if position[0] in (0, 9):
-        return abs(position[0] - 9), position[1]
-    return position[0], abs(position[1] - 11)

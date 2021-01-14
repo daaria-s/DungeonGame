@@ -151,6 +151,7 @@ class Dungeon(Element):
             ['red', 3, 3, 2, 2, 2, 2],
             ['purple', 4, 4, 2, 3, 3, 3],
         ]
+        enemy_number = [0, 0, 0, 0]
         if room == 1:
             a = random.randint(2, 4)
             enemy_number = [a, 4 - a, 0, 0]
@@ -206,12 +207,13 @@ class Dungeon(Element):
             [(random.randint(2, 8), 11), (9, random.randint(2, 9))])
 
         if num > 6:  # генерация зельев для повышения силы или количества ходов
-            x, y = random.randint(1, 9), random.randint(2, 8)
-            while (x, y) in closed_cells:
+            if not random.randint(0, 2):
                 x, y = random.randint(1, 9), random.randint(2, 8)
-            self.objects.append(
-                Chest((x, y), 'potion', random.choice(['red', 'blue'])))
-            closed_cells.append((x, y))
+                while (x, y) in closed_cells:
+                    x, y = random.randint(1, 9), random.randint(2, 8)
+                self.objects.append(
+                    Chest((x, y), 'potion', random.choice(['red', 'blue'])))
+                closed_cells.append((x, y))
 
         if not random.randint(0, 2) and len(self.unused_keys) < 6:
             # генерация двери, если неиспользованных ключей меньше 6
@@ -275,16 +277,19 @@ class Dungeon(Element):
                 list_of_enemies.append(
                     Enemy((x, y), color, hit, m_hit, dam, m_dam, act, m_act))
 
-            objects = cur.execute(f"""SELECT type, posX, posY, inside, color 
-                FROM objects
+            objects = cur.execute(f"""SELECT type, posX, posY, inside, 
+                color, stage FROM objects
                 WHERE room_id = {room_id}""").fetchall()
 
-            for type_, x, y, inside, color in objects:  # все объекты на карте
+            for type_, x, y, inside, color, stage in objects:
+                # все объекты на карте
                 if type_ == 1:  # коробки
                     list_of_objects.append(Box((x, y)))
                 elif type_ == 2:  # сундуки
                     list_of_objects.append(
                         Chest((x, y), *reversed(inside.split('_'))))
+                    if stage:
+                        list_of_objects[-1].touch()
                 else:  # двери
                     list_of_objects.append(Door((x, y), color))
 
@@ -321,7 +326,7 @@ class Dungeon(Element):
                 room_id) 
                 values(1, {obj.position[0]}, 
                 {obj.position[1]}, {room_id})""")
-            elif not obj.stage:  # если объект активен
+            elif obj.stage == 0:  # если объект активен
                 if obj.name == 'chest':
                     cur.execute(f"""INSERT INTO objects(type, posX, 
                         posY, room_id, inside) values(2, {obj.position[0]}, 
@@ -330,6 +335,14 @@ class Dungeon(Element):
                     cur.execute(f"""INSERT INTO objects(type, posX, 
                         posY, room_id, color) values(3, {obj.position[0]}, 
                         {obj.position[1]}, {room_id}, '{obj.color}')""")
+            elif obj.stage == 1 and obj.name == 'chest':
+
+                if obj.name == 'chest':
+                    cur.execute(f"""INSERT INTO objects(type, posX, 
+                        posY, room_id, inside, stage) 
+                        values(2, {obj.position[0]}, 
+                        {obj.position[1]}, {room_id}, 
+                        '{obj.inside.name}', 1)""")
             self.con.commit()
 
     def update_base(self):
@@ -490,6 +503,7 @@ class Dungeon(Element):
 
             player_pos = self.player.position
             enemy_pos = enemy.position
+            diff = (0, 0)
             if random.randint(0, 1):  # генерация ходов врага
                 # враг пытается приблизиться к игроку
                 if enemy_pos[0] != player_pos[0]:

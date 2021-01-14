@@ -197,6 +197,7 @@ class Slider(AnimatedElement):
         """Функция движения мыши"""
         if self.capture:  # если слайдер зажат
             # то двигаем его, не выходя за границы
+            x_pos = 0
             if self.borders[0] <= mouse_pos[0] <= self.borders[1]:
                 x_pos = mouse_pos[0]
             elif mouse_pos[0] < self.borders[0]:
@@ -232,6 +233,7 @@ class Text(Element):
             # если есть объект класса игрок или враг и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
             if self.target == config:
+                value = users()[N] if users() else ''
                 surf.blit(
                     self.font.render(str(value), True, self.color),
                     self.position)
@@ -429,7 +431,7 @@ class InputBox(AnimatedElement):
     def key_down(self, key):
         if pygame.key.name(key) == 'backspace':
             self.input_.text = self.input_.text[:-1]
-        elif len(pygame.key.name(key)) == 1 and pygame.key.name(key).isalnum():
+        elif len(pygame.key.name(key)) == 1 and len(self.input_.text) < 13:
             self.input_.text += pygame.key.name(key)
         config.INPUT_USER = self.input_.text
 
@@ -460,7 +462,6 @@ class SaveButton(Button):
 
     def action(self):
         """Основное действие кнопки"""
-        print(config.INPUT_USER, config.users())
         if config.INPUT_USER and config.INPUT_USER not in config.users():
             self.obj.save(config.INPUT_USER)
             config.NEXT_WINDOW = self.target
