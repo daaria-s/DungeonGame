@@ -233,7 +233,7 @@ class Text(Element):
             # если есть объект класса игрок или враг и его атрибут
             value = getattr(self.target, self.attr_name)  # то отображаем его
             if self.target == config:
-                value = users()[N] if users() else ''
+                value = users()[config.N] if users() else ''
                 surf.blit(
                     self.font.render(str(value), True, self.color),
                     self.position)
@@ -449,8 +449,7 @@ class Arrow(Button):
     def action(self):
         """Основное действие кнопки"""
         if config.users():
-            max_n = len(config.users())
-            config.N = (config.N + self.function) % max_n
+            config.N = (config.N + self.function) % len(config.users())
             config.USER_NAME = config.users()[config.N]
 
 
