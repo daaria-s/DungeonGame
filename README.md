@@ -1,6 +1,6 @@
 ## DungeonGame
 
-*This is a 2D game on pygame, using SQL database. Your goal is to go through all the rooms with enemies and get enoght score.*
+*This is a 2D game on pygame, using SQL database. Your goal is to go through all the rooms with enemies and get enought score.*
 
 
 ### The game **Magic Dungeon** - when you start the game, a menu opens with 4 buttons: 
